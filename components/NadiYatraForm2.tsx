@@ -1,11 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import { AlertCircle, CheckCircle2, Minus, Plus } from "lucide-react";
+
 import { Label } from "@/components/ui/label";
-// import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AlertCircle, CheckCircle2, Minus, Plus } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-// import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -23,7 +22,7 @@ interface ParticipantCount {
 interface FormData {
   fullName: string;
   mobileNumber: string;
-  participationType: "single" | "family" | "";
+  participationType: "single" | "family" | "Guest" | "";
   totalParticipants: string;
   participantBreakdown: ParticipantCount;
   culturalInterest: string[];
@@ -63,21 +62,8 @@ export default function NadiYatraForm2() {
     comments: "",
   });
 
-  //   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormErrors>({});
-
-  //   const countOptions: string[] = [
-  //     "১",
-  //     "২",
-  //     "৩",
-  //     "৪",
-  //     "৫",
-  //     "৬",
-  //     "৭",
-  //     "৮",
-  //     "৯",
-  //     "১০",
-  //   ];
 
   const culturalOptions: string[] = [
     "গান",
@@ -117,7 +103,9 @@ export default function NadiYatraForm2() {
 
   const [showBreakdown, setShowBreakdown] = useState(false);
 
-  const handleParticipationTypeChange = (value: "single" | "family") => {
+  const handleParticipationTypeChange = (
+    value: "single" | "family" | "Guest"
+  ) => {
     setFormData({
       ...formData,
       participationType: value,
@@ -162,7 +150,36 @@ export default function NadiYatraForm2() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
+
+    // Validate required fields
+    const newErrors: FormErrors = {};
+
+    if (!formData.fullName) newErrors.fullName = "এই ক্ষেত্রটি পূর্ণ করুন।";
+    if (!formData.mobileNumber)
+      newErrors.mobileNumber = "এই ক্ষেত্রটি পূর্ণ করুন।";
+    if (!formData.participationType)
+      newErrors.participationType = "এই ক্ষেত্রটি পূর্ণ করুন।";
+    if (!formData.totalParticipants)
+      newErrors.totalParticipants = "এই ক্ষেত্রটি পূর্ণ করুন।";
+    if (!formData.paymentReference)
+      newErrors.paymentReference = "এই ক্ষেত্রটি পূর্ণ করুন।";
+
+    if (
+      formData.participationType === "family" &&
+      !isParticipantBreakdownValid()
+    ) {
+      newErrors.totalParticipants = "মোট অংশগ্রহণকারীদের সংখ্যা মিলছে না।";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    const totalAmount = calculateTotalAmount();
+
+    setSubmitted(true);
+    console.log("Form Data:", formData, totalAmount);
   };
 
   const handleClear = () => {
@@ -195,21 +212,66 @@ export default function NadiYatraForm2() {
     return total === parseInt(formData.totalParticipants || "0");
   };
 
-  //   if (submitted) {
-  //     return (
-  //       <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
-  //         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-  //           <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-  //           <h2 className="text-2xl font-bold text-gray-800 mb-2">
-  //             সফলভাবে জমা হয়েছে!
-  //           </h2>
-  //           <p className="text-gray-600">
-  //             আপনার নিবন্ধন সম্পন্ন হয়েছে। ধন্যবাদ!
-  //           </p>
-  //         </div>
-  //       </div>
-  //     );
-  //   }
+  const calculateTotalAmount = () => {
+    const { adults, children, infants } = formData.participantBreakdown;
+    let adultPrice = 0;
+    let childPrice = 0;
+    let infantPrice = 0;
+
+    // Check if the participation type is "অথিতি" (Guest)
+    if (formData.participationType === "Guest") {
+      adultPrice = 1500; // Price per adult for guests
+      childPrice = 800; // Price per child (6-12 years) for guests
+      infantPrice = 0; // No charge for infants
+    } else {
+      // For "family" or "single", use previous pricing
+      adultPrice = 1000;
+      childPrice = 800;
+      infantPrice = 0;
+    }
+
+    const totalAmount =
+      adults * adultPrice + children * childPrice + infants * infantPrice;
+
+    return totalAmount;
+  };
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            সফলভাবে জমা হয়েছে!
+          </h2>
+          <p className="text-gray-600">
+            আপনার নিবন্ধন সম্পন্ন হয়েছে। ধন্যবাদ!
+          </p>
+
+          {/* Display form data */}
+          <div className="mt-4">
+            <h3 className="font-semibold text-gray-800">আপনার ফর্ম তথ্য:</h3>
+            <p>
+              <strong>পূর্ণ নাম:</strong> {formData.fullName}
+            </p>
+            <p>
+              <strong>মোবাইল নম্বর:</strong> {formData.mobileNumber}
+            </p>
+            <p>
+              <strong>অংশগ্রহণের ধরন:</strong> {formData.participationType}
+            </p>
+            <p>
+              <strong>মোট অংশগ্রহণকারী সংখ্যা:</strong>{" "}
+              {formData.totalParticipants}
+            </p>
+            <p>
+              <strong>টাকার পরিমাণ:</strong> {calculateTotalAmount()} টাকা
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
@@ -240,6 +302,7 @@ export default function NadiYatraForm2() {
               পূর্ণ নাম <span className="text-red-500">*</span>
             </label>
             <input
+              required
               type="text"
               name="fullName"
               value={formData.fullName}
@@ -262,6 +325,7 @@ export default function NadiYatraForm2() {
               মোবাইল নম্বর <span className="text-red-500">*</span>
             </label>
             <input
+              required
               type="tel"
               name="mobileNumber"
               value={formData.mobileNumber}
@@ -293,14 +357,21 @@ export default function NadiYatraForm2() {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="single" id="single" />
                 <Label htmlFor="single" className="cursor-pointer">
-                  একক
+                  একক <span className="text-xs">( রংপুর বাসী )</span>
                 </Label>
               </div>
 
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="family" id="family" />
                 <Label htmlFor="family" className="cursor-pointer">
-                  পরিবারসহ
+                  পরিবারসহ <span className="text-xs">( রংপুর বাসী )</span>
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Guest" id="Guest" />
+                <Label htmlFor="Guest" className="cursor-pointer">
+                  অথিতি
                 </Label>
               </div>
             </RadioGroup>
@@ -319,11 +390,11 @@ export default function NadiYatraForm2() {
             <Select
               value={formData.totalParticipants}
               onValueChange={handleTotalParticipantsChange}
-              disabled={
-                formData.participationType !== "family" ||
-                !formData.participationType
-              }
-              required={formData.participationType === "family"}
+              disabled={formData.participationType === "single"}
+              required={
+                formData.participationType === "family" ||
+                formData.participationType === "Guest"
+              } // Enable for family and Guest
             >
               <SelectTrigger className="w-full p-4 rounded-md border border-gray-300 shadow-sm">
                 <SelectValue placeholder="নির্বাচন করুন" />
@@ -339,9 +410,9 @@ export default function NadiYatraForm2() {
           </div>
 
           {/* Participant Breakdown */}
-          {/* Participant Breakdown */}
           {showBreakdown &&
-            formData.participationType === "family" &&
+            (formData.participationType === "family" ||
+              formData.participationType === "Guest") &&
             formData.totalParticipants && (
               <div className="space-y-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
                 <h3 className="font-semibold text-base text-cyan-800">
@@ -627,6 +698,7 @@ export default function NadiYatraForm2() {
               Payment Reference/TrxID <span className="text-red-500">*</span>
             </label>
             <input
+              required
               type="text"
               name="paymentReference"
               value={formData.paymentReference}
@@ -679,17 +751,25 @@ export default function NadiYatraForm2() {
             </div>
           </div>
 
+          {/* Display Total Amount */}
+          <div className="mt-10">
+            <h4 className="font-semibold text-gray-800">মোট পরিমাণ</h4>
+            <p className="text-gray-700">
+              টাকার পরিমাণ: {calculateTotalAmount()} টাকা
+            </p>
+          </div>
+
           {/* Submit Buttons */}
           <div className="flex gap-4 pt-4">
             <button
               onClick={handleSubmit}
-              className="flex-1 bg-linear-to-r from-emerald-600 to-teal-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition transform hover:scale-105 shadow-lg"
+              className="flex-1 bg-linear-to-r cursor-pointer from-emerald-600 to-teal-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition transform hover:scale-105 shadow-lg"
             >
-              জমা দিন
+              PAYMENT
             </button>
             <button
               onClick={handleClear}
-              className="px-6 py-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-gray-700"
+              className="px-6 py-4 border-2 cursor-pointer border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-gray-700"
             >
               ফর্ম মুছুন
             </button>
