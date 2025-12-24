@@ -1,9 +1,9 @@
-import NadiYatraForm from "@/components/NadiYatraForm";
+import NadiYatraForm2 from "./NadiYatraForm2";
 
 export default function Home() {
   return (
     <>
-      <NadiYatraForm />
+      <NadiYatraForm2 />
     </>
   );
 }

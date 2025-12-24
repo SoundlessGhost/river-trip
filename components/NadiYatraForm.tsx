@@ -154,12 +154,9 @@ export default function BookingForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Full Name */}
           <div className="space-y-2">
-            <label
-              htmlFor="fullName"
-              className="mb-2 block text-sm font-medium text-gray-600"
-            >
+            <Label htmlFor="fullName" className="text-base font-semibold">
               পূর্ণ নাম <span className="text-red-500">*</span>
-            </label>
+            </Label>
             <input
               id="fullName"
               value={formData.fullName}
@@ -174,12 +171,10 @@ export default function BookingForm() {
 
           {/* Mobile Number */}
           <div className="space-y-2">
-            <label
-              htmlFor="mobileNumber"
-              className="mb-2 block text-sm font-medium text-gray-600"
-            >
+            <Label htmlFor="mobileNumber" className="text-base font-semibold">
               মোবাইল নম্বর <span className="text-red-500">*</span>
-            </label>
+            </Label>
+
             <input
               id="mobileNumber"
               type="tel"
@@ -195,9 +190,10 @@ export default function BookingForm() {
 
           {/* Participation Type */}
           <div className="space-y-3">
-            <label className="mb-2 block text-sm font-medium text-gray-600">
+            <Label className="text-base font-semibold">
               অংশগ্রহণের ধরন <span className="text-red-500">*</span>
-            </label>
+            </Label>
+
             <RadioGroup
               value={formData.participationType}
               onValueChange={handleParticipationTypeChange}
@@ -222,13 +218,13 @@ export default function BookingForm() {
 
           {/* Total Participants */}
           <div className="space-y-2">
-            <label
+            <Label
               htmlFor="totalParticipants"
-              className="mb-2 block text-sm font-medium text-gray-600"
+              className="text-base font-semibold"
             >
               মোট অংশগ্রহণকারী সংখ্যা (নিজসহ){" "}
               <span className="text-red-500">*</span>
-            </label>
+            </Label>
 
             <Select
               value={formData.totalParticipants}

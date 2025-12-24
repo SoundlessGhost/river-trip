@@ -1,0 +1,706 @@
+"use client";
+import React, { useState } from "react";
+import { AlertCircle, CheckCircle2, Minus, Plus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+// import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface ParticipantCount {
+  adults: number;
+  children: number;
+  infants: number;
+}
+
+interface FormData {
+  fullName: string;
+  mobileNumber: string;
+  participationType: "single" | "family" | "";
+  totalParticipants: string;
+  participantBreakdown: ParticipantCount;
+  culturalInterest: string[];
+  sportsInterest: string;
+  contributionAgreement: string;
+  sponsorshipAgreement: string;
+  volunteerInterest: string;
+  paymentReference: string;
+  comments: string;
+}
+
+interface FormErrors {
+  fullName?: string;
+  mobileNumber?: string;
+  participationType?: string;
+  totalParticipants?: string;
+  paymentReference?: string;
+}
+
+export default function NadiYatraForm2() {
+  const [formData, setFormData] = useState<FormData>({
+    fullName: "",
+    mobileNumber: "",
+    participationType: "",
+    totalParticipants: "",
+    participantBreakdown: {
+      adults: 1,
+      children: 0,
+      infants: 0,
+    },
+    culturalInterest: [],
+    sportsInterest: "",
+    contributionAgreement: "",
+    sponsorshipAgreement: "",
+    volunteerInterest: "",
+    paymentReference: "",
+    comments: "",
+  });
+
+  //   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  //   const countOptions: string[] = [
+  //     "১",
+  //     "২",
+  //     "৩",
+  //     "৪",
+  //     "৫",
+  //     "৬",
+  //     "৭",
+  //     "৮",
+  //     "৯",
+  //     "১০",
+  //   ];
+
+  const culturalOptions: string[] = [
+    "গান",
+    "আবৃত্তি",
+    "নৃত্য",
+    "ভাওয়াইয়া / লোকসংগীত",
+    "অন্যান্য",
+  ];
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleRadioChange = (name: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleCheckboxChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      culturalInterest: prev.culturalInterest.includes(value)
+        ? prev.culturalInterest.filter((item) => item !== value)
+        : [...prev.culturalInterest, value],
+    }));
+  };
+
+  const [showBreakdown, setShowBreakdown] = useState(false);
+
+  const handleParticipationTypeChange = (value: "single" | "family") => {
+    setFormData({
+      ...formData,
+      participationType: value,
+      totalParticipants: value === "single" ? "1" : "",
+      participantBreakdown: {
+        adults: 1,
+        children: 0,
+        infants: 0,
+      },
+    });
+    setShowBreakdown(false);
+  };
+
+  const handleTotalParticipantsChange = (value: string) => {
+    setFormData({
+      ...formData,
+      totalParticipants: value,
+    });
+    setShowBreakdown(true);
+  };
+
+  const updateParticipantCount = (
+    type: keyof ParticipantCount,
+    increment: boolean
+  ) => {
+    const currentValue = formData.participantBreakdown[type];
+    const newValue = increment
+      ? currentValue + 1
+      : Math.max(0, currentValue - 1);
+
+    // Ensure adults count is at least 1
+    if (type === "adults" && newValue < 1) return;
+
+    setFormData({
+      ...formData,
+      participantBreakdown: {
+        ...formData.participantBreakdown,
+        [type]: newValue,
+      },
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form Data:", formData);
+  };
+
+  const handleClear = () => {
+    setFormData({
+      fullName: "",
+      mobileNumber: "",
+      participationType: "",
+      totalParticipants: "",
+      participantBreakdown: {
+        adults: 1,
+        children: 0,
+        infants: 0,
+      },
+      culturalInterest: [],
+      sportsInterest: "",
+      contributionAgreement: "",
+      sponsorshipAgreement: "",
+      volunteerInterest: "",
+      paymentReference: "",
+      comments: "",
+    });
+    setShowBreakdown(false);
+  };
+
+  const isParticipantBreakdownValid = () => {
+    const total =
+      formData.participantBreakdown.adults +
+      formData.participantBreakdown.children +
+      formData.participantBreakdown.infants;
+    return total === parseInt(formData.totalParticipants || "0");
+  };
+
+  //   if (submitted) {
+  //     return (
+  //       <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
+  //         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+  //           <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+  //           <h2 className="text-2xl font-bold text-gray-800 mb-2">
+  //             সফলভাবে জমা হয়েছে!
+  //           </h2>
+  //           <p className="text-gray-600">
+  //             আপনার নিবন্ধন সম্পন্ন হয়েছে। ধন্যবাদ!
+  //           </p>
+  //         </div>
+  //       </div>
+  //     );
+  //   }
+
+  return (
+    <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="bg-linear-to-r from-emerald-600 to-teal-600 rounded-t-2xl p-8 text-white shadow-lg">
+          <h1 className="text-4xl font-bold mb-3">নদী যাত্রা ২০২৬</h1>
+          <p className="text-emerald-50 text-lg">
+            আয়োজনকৃতঃ রংপুর জেলা সমিতি, ঢাকা
+          </p>
+          <p className="text-emerald-100 mt-2">
+            তারিখঃ ১৭ জানুয়ারি ২০২৬ (শনিবার)
+          </p>
+          <p className="text-emerald-100">
+            নদী মেঘনার জলরাশিতে শেকড়ের মিলনমেলা
+          </p>
+          <p className="text-emerald-200 font-semibold mt-3">
+            সদস্য অংশগ্রহণ ফরম
+          </p>
+        </div>
+
+        {/* Form */}
+
+        <div className="bg-white rounded-b-2xl shadow-2xl p-8 space-y-6">
+          {/* Full Name */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              পূর্ণ নাম <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
+                errors.fullName ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="আপনার উত্তর"
+            />
+            {errors.fullName && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" /> {errors.fullName}
+              </p>
+            )}
+          </div>
+
+          {/* mobileNumber */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              মোবাইল নম্বর <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              name="mobileNumber"
+              value={formData.mobileNumber}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
+                errors.mobileNumber ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="আপনার উত্তর"
+            />
+            {errors.mobileNumber && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" /> {errors.mobileNumber}
+              </p>
+            )}
+          </div>
+
+          {/* Participation Type */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">
+              অংশগ্রহণের ধরন <span className="text-red-500">*</span>
+            </Label>
+
+            <RadioGroup
+              value={formData.participationType}
+              onValueChange={handleParticipationTypeChange}
+              className="flex space-x-6"
+              required
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="single" id="single" />
+                <Label htmlFor="single" className="cursor-pointer">
+                  একক
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="family" id="family" />
+                <Label htmlFor="family" className="cursor-pointer">
+                  পরিবারসহ
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Total Participants */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="totalParticipants"
+              className="text-base font-semibold"
+            >
+              মোট অংশগ্রহণকারী সংখ্যা (নিজসহ){" "}
+              <span className="text-red-500">*</span>
+            </Label>
+
+            <Select
+              value={formData.totalParticipants}
+              onValueChange={handleTotalParticipantsChange}
+              disabled={
+                formData.participationType !== "family" ||
+                !formData.participationType
+              }
+              required={formData.participationType === "family"}
+            >
+              <SelectTrigger className="w-full p-4 rounded-md border border-gray-300 shadow-sm">
+                <SelectValue placeholder="নির্বাচন করুন" />
+              </SelectTrigger>
+              <SelectContent>
+                {[...Array(10)].map((_, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Participant Breakdown */}
+          {/* Participant Breakdown */}
+          {showBreakdown &&
+            formData.participationType === "family" &&
+            formData.totalParticipants && (
+              <div className="space-y-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+                <h3 className="font-semibold text-base text-cyan-800">
+                  অংশগ্রহণকারীদের বিস্তারিত
+                </h3>
+
+                {/* Adults */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">প্রাপ্তবয়স্ক</p>
+                    <p className="text-xs text-gray-600">13 বছর এবং তার পরে</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("adults", false)}
+                      disabled={formData.participantBreakdown.adults <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center font-semibold">
+                      {formData.participantBreakdown.adults}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("adults", true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Children */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">শিশু</p>
+                    <p className="text-xs text-gray-600">৬-১২ বছর</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("children", false)}
+                      disabled={formData.participantBreakdown.children === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center font-semibold">
+                      {formData.participantBreakdown.children}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("children", true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Infants */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">শিশু</p>
+                    <p className="text-xs text-gray-600">৫ বছরের নিচে</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("infants", false)}
+                      disabled={formData.participantBreakdown.infants === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center font-semibold">
+                      {formData.participantBreakdown.infants}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("infants", true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {!isParticipantBreakdownValid() && (
+                  <p className="text-sm text-red-600 mt-2">
+                    মোট সংখ্যা {formData.totalParticipants} হতে হবে
+                  </p>
+                )}
+              </div>
+            )}
+
+          {/* Cultural Interest */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-3">
+              সাংস্কৃতিক অনুষ্ঠানে অংশগ্রহণে আগ্রহী কি?
+            </label>
+            <div className="space-y-2">
+              {culturalOptions.map((option) => (
+                <div
+                  key={option}
+                  onClick={() => handleCheckboxChange(option)}
+                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                    formData.culturalInterest.includes(option)
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:bg-emerald-50"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                      formData.culturalInterest.includes(option)
+                        ? "border-emerald-600 bg-emerald-600"
+                        : "border-gray-400"
+                    }`}
+                  >
+                    {formData.culturalInterest.includes(option) && (
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+                  <span className="ml-3 text-gray-700">{option}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Want Sports */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-3">
+              খেলায় অংশগ্রহণ করতে ইচ্ছুক?
+            </label>
+            <div className="space-y-2">
+              {["হ্যাঁ", "না"].map((option) => (
+                <div
+                  key={option}
+                  onClick={() => handleRadioChange("sportsInterest", option)}
+                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                    formData.sportsInterest === option
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:bg-emerald-50"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.sportsInterest === option
+                        ? "border-emerald-600"
+                        : "border-gray-400"
+                    }`}
+                  >
+                    {formData.sportsInterest === option && (
+                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                    )}
+                  </div>
+                  <span className="ml-3 text-gray-700">{option}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Support Program */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-3">
+              আনুমানিক অংশগ্রহণে টাকা প্রদান করতে সম্মত আছেন কি?
+            </label>
+            <div className="space-y-2">
+              {["হ্যাঁ", "না"].map((option) => (
+                <div
+                  key={option}
+                  onClick={() =>
+                    handleRadioChange("contributionAgreement", option)
+                  }
+                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                    formData.contributionAgreement === option
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:bg-emerald-50"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.contributionAgreement === option
+                        ? "border-emerald-600"
+                        : "border-gray-400"
+                    }`}
+                  >
+                    {formData.contributionAgreement === option && (
+                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                    )}
+                  </div>
+                  <span className="ml-3 text-gray-700">{option}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Gift Donation */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-3">
+              কোনো স্পন্সর বা অনুদান বা উপহার প্রদান করতে সম্মত আছেন কি?{" "}
+            </label>
+            <div className="space-y-2">
+              {["হ্যাঁ", "না"].map((option) => (
+                <div
+                  key={option}
+                  onClick={() =>
+                    handleRadioChange("sponsorshipAgreement", option)
+                  }
+                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                    formData.sponsorshipAgreement === option
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:bg-emerald-50"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.sponsorshipAgreement === option
+                        ? "border-emerald-600"
+                        : "border-gray-400"
+                    }`}
+                  >
+                    {formData.sponsorshipAgreement === option && (
+                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                    )}
+                  </div>
+                  <span className="ml-3 text-gray-700">{option}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Volunteer */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-3">
+              আয়োজনে স্বেচ্ছাসেবক হিসেবে কাজ করতে আগ্রহী কি?
+            </label>
+            <div className="space-y-2">
+              {["হ্যাঁ", "না"].map((option) => (
+                <div
+                  key={option}
+                  onClick={() => handleRadioChange("volunteerInterest", option)}
+                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                    formData.volunteerInterest === option
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "border-gray-200 hover:bg-emerald-50"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.volunteerInterest === option
+                        ? "border-emerald-600"
+                        : "border-gray-400"
+                    }`}
+                  >
+                    {formData.volunteerInterest === option && (
+                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                    )}
+                  </div>
+                  <span className="ml-3 text-gray-700">{option}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Reference */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Payment Reference/TrxID <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="paymentReference"
+              value={formData.paymentReference}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
+                errors.paymentReference ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="আপনার উত্তর"
+            />
+            {errors.paymentReference && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" /> {errors.paymentReference}
+              </p>
+            )}
+          </div>
+
+          {/* Comments */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              মতামত / প্রত্যাশা (যদি থাকে)
+            </label>
+            <textarea
+              name="comments"
+              value={formData.comments}
+              onChange={handleInputChange}
+              rows={4}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition resize-none"
+              placeholder="আপনার উত্তর"
+            />
+          </div>
+
+          {/* Payment Info Box */}
+          <div className="bg-linear-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-3">
+              পেমেন্ট তথ্য
+            </h3>
+            <div className="space-y-2 text-gray-700">
+              <p>
+                <span className="font-semibold">বিকাশ নম্বর:</span> 01794951003
+              </p>
+              <p>
+                <span className="font-semibold">নগদ নম্বর:</span> 016254578414
+              </p>
+              <p>
+                <span className="font-semibold">রকেট নম্বর:</span> 01235468795
+              </p>
+              <p className="text-sm text-amber-700 mt-3">
+                * পেমেন্ট করার পর Transaction ID এই ফর্মে প্রদান করুন
+              </p>
+            </div>
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex gap-4 pt-4">
+            <button
+              onClick={handleSubmit}
+              className="flex-1 bg-linear-to-r from-emerald-600 to-teal-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition transform hover:scale-105 shadow-lg"
+            >
+              জমা দিন
+            </button>
+            <button
+              onClick={handleClear}
+              className="px-6 py-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-gray-700"
+            >
+              ফর্ম মুছুন
+            </button>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-6 text-gray-600 text-sm">
+          <p>© ২০২৬ রংপুর জেলা সমিতি, ঢাকা</p>
+        </div>
+      </div>
+    </div>
+  );
+}
