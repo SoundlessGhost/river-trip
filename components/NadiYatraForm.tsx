@@ -1,603 +1,610 @@
 "use client";
 import React, { useState } from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Minus, Plus } from "lucide-react";
+
+interface ParticipantCount {
+  adults: number;
+  children: number;
+  infants: number;
+}
 
 interface FormData {
   fullName: string;
-  mobile: string;
-  participationType: string;
+  mobileNumber: string;
+  participationType: "single" | "family" | "";
   totalParticipants: string;
-  haveChildren: string;
-  childrenAge: string;
+  participantBreakdown: ParticipantCount;
   culturalInterest: string[];
-  wantSports: string;
-  supportProgram: string;
-  giftDonation: string;
-  volunteer: string;
-  paymentRef: string;
+  sportsInterest: string;
+  contributionAgreement: string;
+  sponsorshipAgreement: string;
+  volunteerInterest: string;
+  paymentReference: string;
   comments: string;
 }
 
-interface FormErrors {
-  fullName?: string;
-  mobile?: string;
-  participationType?: string;
-  totalParticipants?: string;
-  paymentRef?: string;
-}
-
-export default function NadiYatraForm() {
+export default function BookingForm() {
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
-    mobile: "",
+    mobileNumber: "",
     participationType: "",
     totalParticipants: "",
-    haveChildren: "",
-    childrenAge: "",
+    participantBreakdown: {
+      adults: 1,
+      children: 0,
+      infants: 0,
+    },
     culturalInterest: [],
-    wantSports: "",
-    supportProgram: "",
-    giftDonation: "",
-    volunteer: "",
-    paymentRef: "",
+    sportsInterest: "",
+    contributionAgreement: "",
+    sponsorshipAgreement: "",
+    volunteerInterest: "",
+    paymentReference: "",
     comments: "",
   });
 
-  const [submitted, setSubmitted] = useState<boolean>(false);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
-  const countOptions: string[] = [
-    "১",
-    "২",
-    "৩",
-    "৪",
-    "৫",
-    "৬",
-    "৭",
-    "৮",
-    "৯",
-    "১০",
-  ];
-
-  const culturalOptions: string[] = [
+  const culturalOptions = [
     "গান",
     "আবৃত্তি",
     "নৃত্য",
-    "ভাওয়াইয়া / লোকসংগীত",
-    "অন্যান্য",
+    "ভাওয়াইয়া / দেশাত্মবোধক গান",
   ];
 
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+  const handleParticipationTypeChange = (value: "single" | "family") => {
+    setFormData({
+      ...formData,
+      participationType: value,
+      totalParticipants: value === "single" ? "1" : "",
+      participantBreakdown: {
+        adults: 1,
+        children: 0,
+        infants: 0,
+      },
+    });
+    setShowBreakdown(false);
+  };
+
+  const handleTotalParticipantsChange = (value: string) => {
+    setFormData({
+      ...formData,
+      totalParticipants: value,
+    });
+    setShowBreakdown(true);
+  };
+
+  const updateParticipantCount = (
+    type: keyof ParticipantCount,
+    increment: boolean
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    const currentValue = formData.participantBreakdown[type];
+    const newValue = increment
+      ? currentValue + 1
+      : Math.max(0, currentValue - 1);
+
+    // Ensure adults count is at least 1
+    if (type === "adults" && newValue < 1) return;
+
+    setFormData({
+      ...formData,
+      participantBreakdown: {
+        ...formData.participantBreakdown,
+        [type]: newValue,
+      },
+    });
   };
 
-  const handleRadioChange = (name: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const handleCheckboxChange = (value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      culturalInterest: prev.culturalInterest.includes(value)
-        ? prev.culturalInterest.filter((item) => item !== value)
-        : [...prev.culturalInterest, value],
-    }));
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.fullName.trim()) newErrors.fullName = "পূর্ণ নাম আবশ্যক";
-    if (!formData.mobile.trim()) newErrors.mobile = "মোবাইল নম্বর আবশ্যক";
-    if (!formData.participationType)
-      newErrors.participationType = "অংশগ্রহণের ধরন নির্বাচন করুন";
-    if (!formData.totalParticipants)
-      newErrors.totalParticipants = "সংখ্যা নির্বাচন করুন";
-    if (!formData.paymentRef.trim())
-      newErrors.paymentRef = "Payment Reference আবশ্যক";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    console.log("Form submitted:", formData);
-    setSubmitted(true);
-
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        fullName: "",
-        mobile: "",
-        participationType: "",
-        totalParticipants: "",
-        haveChildren: "",
-        childrenAge: "",
-        culturalInterest: [],
-        wantSports: "",
-        supportProgram: "",
-        giftDonation: "",
-        volunteer: "",
-        paymentRef: "",
-        comments: "",
-      });
-    }, 3000);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form Data:", formData);
+    alert("ফর্ম সফলভাবে জমা হয়েছে!");
   };
 
   const handleClear = () => {
     setFormData({
       fullName: "",
-      mobile: "",
+      mobileNumber: "",
       participationType: "",
       totalParticipants: "",
-      haveChildren: "",
-      childrenAge: "",
+      participantBreakdown: {
+        adults: 1,
+        children: 0,
+        infants: 0,
+      },
       culturalInterest: [],
-      wantSports: "",
-      supportProgram: "",
-      giftDonation: "",
-      volunteer: "",
-      paymentRef: "",
+      sportsInterest: "",
+      contributionAgreement: "",
+      sponsorshipAgreement: "",
+      volunteerInterest: "",
+      paymentReference: "",
       comments: "",
     });
-    setErrors({});
+    setShowBreakdown(false);
   };
 
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-          <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            সফলভাবে জমা হয়েছে!
-          </h2>
-          <p className="text-gray-600">
-            আপনার নিবন্ধন সম্পন্ন হয়েছে। ধন্যবাদ!
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const isParticipantBreakdownValid = () => {
+    const total =
+      formData.participantBreakdown.adults +
+      formData.participantBreakdown.children +
+      formData.participantBreakdown.infants;
+    return total === parseInt(formData.totalParticipants || "0");
+  };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="bg-linear-to-r from-emerald-600 to-teal-600 rounded-t-2xl p-8 text-white shadow-lg">
-          <h1 className="text-4xl font-bold mb-3">নদী যাত্রা ২০২৬</h1>
-          <p className="text-emerald-50 text-lg">
-            আয়োজনকৃতঃ রংপুর জেলা সমিতি, ঢাকা
-          </p>
-          <p className="text-emerald-100 mt-2">
-            তারিখঃ ১৭ জানুয়ারি ২০২৬ (শনিবার)
-          </p>
-          <p className="text-emerald-100">
-            নদী মেঘনার জলরাশিতে শেকড়ের মিলনমেলা
-          </p>
-          <p className="text-emerald-200 font-semibold mt-3">
-            সদস্য অংশগ্রহণ ফরম
-          </p>
-        </div>
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-cyan-50 py-8 px-4">
+      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-center text-cyan-700 mb-8">
+          বুকিং ফর্ম
+        </h1>
 
-        {/* Form */}
-        <div className="bg-white rounded-b-2xl shadow-2xl p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Full Name */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+          <div className="space-y-2">
+            <label
+              htmlFor="fullName"
+              className="mb-2 block text-sm font-medium text-gray-600"
+            >
               পূর্ণ নাম <span className="text-red-500">*</span>
             </label>
             <input
-              type="text"
-              name="fullName"
+              id="fullName"
               value={formData.fullName}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
-                errors.fullName ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="আপনার উত্তর"
+              onChange={(e) =>
+                setFormData({ ...formData, fullName: e.target.value })
+              }
+              required
+              className="w-full rounded-md border border-gray-300 p-3 text-sm text-gray-800 focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:outline-none"
+              placeholder="আপনার পূর্ণ নাম লিখুন"
             />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.fullName}
-              </p>
-            )}
           </div>
 
           {/* Mobile Number */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+          <div className="space-y-2">
+            <label
+              htmlFor="mobileNumber"
+              className="mb-2 block text-sm font-medium text-gray-600"
+            >
               মোবাইল নম্বর <span className="text-red-500">*</span>
             </label>
             <input
+              id="mobileNumber"
               type="tel"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
-                errors.mobile ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="আপনার উত্তর"
+              value={formData.mobileNumber}
+              onChange={(e) =>
+                setFormData({ ...formData, mobileNumber: e.target.value })
+              }
+              required
+              className="w-full rounded-md border border-gray-300 p-3 text-sm text-gray-800 focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:outline-none"
+              placeholder="০১XXXXXXXXX"
             />
-            {errors.mobile && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.mobile}
-              </p>
-            )}
           </div>
 
-          {/* Attendee Type */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-3">
+          {/* Participation Type */}
+          <div className="space-y-3">
+            <label className="mb-2 block text-sm font-medium text-gray-600">
               অংশগ্রহণের ধরন <span className="text-red-500">*</span>
             </label>
-            <div className="space-y-2">
-              {["একক", "পরিবারসহ"].map((option) => (
-                <div
-                  key={option}
-                  onClick={() => handleRadioChange("participationType", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
-                    formData.participationType === option
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-gray-200 hover:bg-emerald-50"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      formData.participationType === option
-                        ? "border-emerald-600"
-                        : "border-gray-400"
-                    }`}
-                  >
-                    {formData.participationType === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
-                    )}
-                  </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
-                </div>
-              ))}
-            </div>
-            {errors.participationType && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.participationType}
-              </p>
-            )}
+            <RadioGroup
+              value={formData.participationType}
+              onValueChange={handleParticipationTypeChange}
+              className="flex space-x-6"
+              required
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="single" id="single" />
+                <Label htmlFor="single" className="cursor-pointer">
+                  একক
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="family" id="family" />
+                <Label htmlFor="family" className="cursor-pointer">
+                  পরিবারসহ
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          {/* Total Count */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+          {/* Total Participants */}
+          <div className="space-y-2">
+            <label
+              htmlFor="totalParticipants"
+              className="mb-2 block text-sm font-medium text-gray-600"
+            >
               মোট অংশগ্রহণকারী সংখ্যা (নিজসহ){" "}
               <span className="text-red-500">*</span>
             </label>
-            <select
-              name="totalParticipants"
+
+            <Select
               value={formData.totalParticipants}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition appearance-none bg-white ${
-                errors.totalParticipants ? "border-red-500" : "border-gray-300"
-              }`}
+              onValueChange={handleTotalParticipantsChange}
+              disabled={
+                formData.participationType !== "family" ||
+                !formData.participationType
+              }
+              required={formData.participationType === "family"}
             >
-              <option value="">বাছুন</option>
-              {countOptions.map((count) => (
-                <option key={count} value={count}>
-                  {count}
-                </option>
-              ))}
-            </select>
-            {errors.totalParticipants && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.totalParticipants}
-              </p>
-            )}
+              <SelectTrigger className="w-full p-4 rounded-md border border-gray-300 shadow-sm">
+                <SelectValue placeholder="নির্বাচন করুন" />
+              </SelectTrigger>
+              <SelectContent>
+                {[...Array(10)].map((_, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Has Shirt */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-3">
-              শিশু আছে কি?
-            </label>
-            <div className="space-y-2">
-              {["হ্যাঁ", "না"].map((option) => (
-                <div
-                  key={option}
-                  onClick={() => handleRadioChange("haveChildren", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
-                    formData.haveChildren === option
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-gray-200 hover:bg-emerald-50"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      formData.haveChildren === option
-                        ? "border-emerald-600"
-                        : "border-gray-400"
-                    }`}
-                  >
-                    {formData.haveChildren === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
-                    )}
+          {/* Participant Breakdown */}
+          {/* Participant Breakdown */}
+          {showBreakdown &&
+            formData.participationType === "family" &&
+            formData.totalParticipants && (
+              <div className="space-y-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+                <h3 className="font-semibold text-base text-cyan-800">
+                  অংশগ্রহণকারীদের বিস্তারিত
+                </h3>
+
+                {/* Adults */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">প্রাপ্তবয়স্ক</p>
+                    <p className="text-xs text-gray-600">13 বছর এবং তার পরে</p>
                   </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("adults", false)}
+                      disabled={formData.participantBreakdown.adults <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center font-semibold">
+                      {formData.participantBreakdown.adults}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("adults", true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Shirt Reason */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">
-              শিশু থাকলে বয়স?
-            </label>
-            <input
-              type="text"
-              name="childrenAge"
-              value={formData.childrenAge}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-              placeholder="আপনার উত্তর"
-            />
-          </div>
+                {/* Children */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">শিশু</p>
+                    <p className="text-xs text-gray-600">৬-১২ বছর</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("children", false)}
+                      disabled={formData.participantBreakdown.children === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center font-semibold">
+                      {formData.participantBreakdown.children}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("children", true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Infants */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">শিশু</p>
+                    <p className="text-xs text-gray-600">৫ বছরের নিচে</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("infants", false)}
+                      disabled={formData.participantBreakdown.infants === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center font-semibold">
+                      {formData.participantBreakdown.infants}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => updateParticipantCount("infants", true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {!isParticipantBreakdownValid() && (
+                  <p className="text-sm text-red-600 mt-2">
+                    মোট সংখ্যা {formData.totalParticipants} হতে হবে
+                  </p>
+                )}
+              </div>
+            )}
 
           {/* Cultural Interest */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-3">
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">
               সাংস্কৃতিক অনুষ্ঠানে অংশগ্রহণে আগ্রহী কি?
-            </label>
+            </Label>
             <div className="space-y-2">
               {culturalOptions.map((option) => (
-                <div
-                  key={option}
-                  onClick={() => handleCheckboxChange(option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
-                    formData.culturalInterest.includes(option)
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-gray-200 hover:bg-emerald-50"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                      formData.culturalInterest.includes(option)
-                        ? "border-emerald-600 bg-emerald-600"
-                        : "border-gray-400"
-                    }`}
+                <div key={option} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={option}
+                    checked={formData.culturalInterest.includes(option)}
+                  />
+                  <Label
+                    htmlFor={option}
+                    className="font-normal cursor-pointer"
                   >
-                    {formData.culturalInterest.includes(option) && (
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                    )}
-                  </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
+                    {option}
+                  </Label>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Want Sports */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-3">
+          {/* Sports Interest */}
+          {/* <div className="space-y-3">
+            <Label className="text-base font-semibold">
               খেলায় অংশগ্রহণ করতে ইচ্ছুক?
-            </label>
-            <div className="space-y-2">
-              {["হ্যাঁ", "না"].map((option) => (
-                <div
-                  key={option}
-                  onClick={() => handleRadioChange("wantSports", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
-                    formData.wantSports === option
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-gray-200 hover:bg-emerald-50"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      formData.wantSports === option
-                        ? "border-emerald-600"
-                        : "border-gray-400"
-                    }`}
-                  >
-                    {formData.wantSports === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
-                    )}
-                  </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
-                </div>
-              ))}
+            </Label>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({ ...formData, sportsInterest: "yes" })
+                }
+                className={`flex-1 py-3 px-6 border-2 rounded-md font-medium transition-colors ${
+                  formData.sportsInterest === "yes"
+                    ? "border-cyan-600 bg-cyan-50 text-cyan-700"
+                    : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                }`}
+              >
+                হ্যাঁ
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({ ...formData, sportsInterest: "no" })
+                }
+                className={`flex-1 py-3 px-6 border-2 rounded-md font-medium transition-colors ${
+                  formData.sportsInterest === "no"
+                    ? "border-cyan-600 bg-cyan-50 text-cyan-700"
+                    : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                }`}
+              >
+                না
+              </button>
             </div>
+          </div> */}
+
+          {/* Sports Interest */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">
+              খেলায় অংশগ্রহণ করতে ইচ্ছুক?
+            </Label>
+            <RadioGroup
+              value={formData.sportsInterest}
+              onValueChange={(value) =>
+                setFormData({ ...formData, sportsInterest: value })
+              }
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="sports-yes" />
+                <Label
+                  htmlFor="sports-yes"
+                  className="font-normal cursor-pointer"
+                >
+                  হ্যাঁ
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="sports-no" />
+                <Label
+                  htmlFor="sports-no"
+                  className="font-normal cursor-pointer"
+                >
+                  না
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          {/* Support Program */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-3">
-              আনুমানিক অংশগ্রহণে টাকা প্রদান করতে সম্মত আছেন কি?
-            </label>
-            <div className="space-y-2">
-              {["হ্যাঁ", "না"].map((option) => (
-                <div
-                  key={option}
-                  onClick={() => handleRadioChange("supportProgram", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
-                    formData.supportProgram === option
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-gray-200 hover:bg-emerald-50"
-                  }`}
+          {/* Contribution Agreement */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">
+              আনুমানিক অংশগ্রহণ চাঁদা প্রদান করতে সম্মত আছেন কি?
+            </Label>
+            <RadioGroup
+              value={formData.contributionAgreement}
+              onValueChange={(value) =>
+                setFormData({ ...formData, contributionAgreement: value })
+              }
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="contribution-yes" />
+                <Label
+                  htmlFor="contribution-yes"
+                  className="font-normal cursor-pointer"
                 >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      formData.supportProgram === option
-                        ? "border-emerald-600"
-                        : "border-gray-400"
-                    }`}
-                  >
-                    {formData.supportProgram === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
-                    )}
-                  </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
-                </div>
-              ))}
-            </div>
+                  হ্যাঁ
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="contribution-no" />
+                <Label
+                  htmlFor="contribution-no"
+                  className="font-normal cursor-pointer"
+                >
+                  না
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          {/* Gift Donation */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-3">
-              কোনো স্পন্সর বা অনুদান বা উপহার প্রদান করতে সম্মত আছেন কি?{" "}
-            </label>
-            <div className="space-y-2">
-              {["হ্যাঁ", "না"].map((option) => (
-                <div
-                  key={option}
-                  onClick={() => handleRadioChange("giftDonation", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
-                    formData.giftDonation === option
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-gray-200 hover:bg-emerald-50"
-                  }`}
+          {/* Sponsorship Agreement */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">
+              কোনো স্পন্সর বা অনুদান বা উপহার প্রদান করতে সম্মত আছেন কি?
+            </Label>
+            <RadioGroup
+              value={formData.sponsorshipAgreement}
+              onValueChange={(value) =>
+                setFormData({ ...formData, sponsorshipAgreement: value })
+              }
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="sponsorship-yes" />
+                <Label
+                  htmlFor="sponsorship-yes"
+                  className="font-normal cursor-pointer"
                 >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      formData.giftDonation === option
-                        ? "border-emerald-600"
-                        : "border-gray-400"
-                    }`}
-                  >
-                    {formData.giftDonation === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
-                    )}
-                  </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
-                </div>
-              ))}
-            </div>
+                  হ্যাঁ
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="sponsorship-no" />
+                <Label
+                  htmlFor="sponsorship-no"
+                  className="font-normal cursor-pointer"
+                >
+                  না
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          {/* Volunteer */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-3">
-              আয়োজনে স্বেচ্ছাসেবক হিসেবে কাজ করতে আগ্রহী কি?
-            </label>
-            <div className="space-y-2">
-              {["হ্যাঁ", "না"].map((option) => (
-                <div
-                  key={option}
-                  onClick={() => handleRadioChange("volunteer", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
-                    formData.volunteer === option
-                      ? "border-emerald-500 bg-emerald-50"
-                      : "border-gray-200 hover:bg-emerald-50"
-                  }`}
+          {/* Volunteer Interest */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">
+              আয়োজনে স্বেচ্ছাসেবক হিসেবে কাজ করতে আগ্রহী কি?
+            </Label>
+            <RadioGroup
+              value={formData.volunteerInterest}
+              onValueChange={(value) =>
+                setFormData({ ...formData, volunteerInterest: value })
+              }
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="volunteer-yes" />
+                <Label
+                  htmlFor="volunteer-yes"
+                  className="font-normal cursor-pointer"
                 >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      formData.volunteer === option
-                        ? "border-emerald-600"
-                        : "border-gray-400"
-                    }`}
-                  >
-                    {formData.volunteer === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
-                    )}
-                  </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
-                </div>
-              ))}
-            </div>
+                  হ্যাঁ
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="volunteer-no" />
+                <Label
+                  htmlFor="volunteer-no"
+                  className="font-normal cursor-pointer"
+                >
+                  না
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Payment Reference */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">
-              Payment Reference/TrxID <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="paymentRef"
-              value={formData.paymentRef}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
-                errors.paymentRef ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="আপনার উত্তর"
+          <div className="space-y-2">
+            <Label
+              htmlFor="paymentReference"
+              className="text-base font-semibold"
+            >
+              Payment Reference/TrxID
+            </Label>
+            <Input
+              id="paymentReference"
+              value={formData.paymentReference}
+              onChange={(e) =>
+                setFormData({ ...formData, paymentReference: e.target.value })
+              }
+              className="text-base"
+              placeholder="পেমেন্ট রেফারেন্স নম্বর লিখুন"
             />
-            {errors.paymentRef && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.paymentRef}
-              </p>
-            )}
           </div>
 
           {/* Comments */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">
-              মতামত / প্রত্যাশা (যদি থাকে)
-            </label>
-            <textarea
-              name="comments"
+          <div className="space-y-2">
+            <Label htmlFor="comments" className="text-base font-semibold">
+              মন্তব্য / প্রস্তাব (যদি থাকে)
+            </Label>
+            <Textarea
+              id="comments"
               value={formData.comments}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition resize-none"
-              placeholder="আপনার উত্তর"
+              onChange={(e) =>
+                setFormData({ ...formData, comments: e.target.value })
+              }
+              className="text-base min-h-24"
+              placeholder="আপনার মন্তব্য বা প্রস্তাব লিখুন"
             />
           </div>
 
-          {/* Payment Info Box */}
-          <div className="bg-linear-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-3">
-              পেমেন্ট তথ্য
-            </h3>
-            <div className="space-y-2 text-gray-700">
-              <p>
-                <span className="font-semibold">বিকাশ নম্বর:</span> 01794951003
-              </p>
-              <p>
-                <span className="font-semibold">নগদ নম্বর:</span> 016254578414
-              </p>
-              <p>
-                <span className="font-semibold">রকেট নম্বর:</span> 01235468795
-              </p>
-              <p className="text-sm text-amber-700 mt-3">
-                * পেমেন্ট করার পর Transaction ID এই ফর্মে প্রদান করুন
-              </p>
-            </div>
-          </div>
-
-          {/* Submit Buttons */}
+          {/* Buttons */}
           <div className="flex gap-4 pt-4">
-            <button
-              onClick={handleSubmit}
-              className="flex-1 bg-linear-to-r from-emerald-600 to-teal-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition transform hover:scale-105 shadow-lg"
+            <Button
+              type="submit"
+              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-6 text-base"
             >
-              জমা দিন
-            </button>
-            <button
+              সাবমিট করুন
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
               onClick={handleClear}
-              className="px-6 py-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-gray-700"
+              className="flex-1 border-cyan-600 text-cyan-600 hover:bg-cyan-50 font-semibold py-6 text-base"
             >
-              ফর্ম মুছুন
-            </button>
+              ক্লিয়ার করুন
+            </Button>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-6 text-gray-600 text-sm">
-          <p>© ২০২৬ রংপুর জেলা সমিতি, ঢাকা</p>
-        </div>
+        </form>
       </div>
     </div>
   );
