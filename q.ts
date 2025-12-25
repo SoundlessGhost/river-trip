@@ -5,15 +5,35 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const {
+      fullName,
+      mobileNumber,
+      participationType,
+      totalParticipants,
+      participantBreakdown,
+      culturalInterest,
+      sportsInterest,
+      contributionAgreement,
+      sponsorshipAgreement,
+      volunteerInterest,
+      comments,
+      amount,
+    } = body;
 
     // Validate required fields
     if (
-      !body.amount ||
-      !body.customer_name ||
-      !body.customer_email ||
-      !body.customer_phone ||
-      !body.customer_address ||
-      !body.customer_city
+      !amount ||
+      !fullName ||
+      !mobileNumber ||
+      !participationType ||
+      !totalParticipants ||
+      !participantBreakdown ||
+      !culturalInterest ||
+      !sportsInterest ||
+      !contributionAgreement ||
+      !sponsorshipAgreement ||
+      !volunteerInterest ||
+      !comments
     ) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -30,13 +50,13 @@ export async function POST(request: NextRequest) {
       order_id: orderId,
       amount: parseFloat(body.amount),
       currency: "BDT",
-      customer_name: body.customer_name,
-      customer_address: body.customer_address,
-      customer_city: body.customer_city,
-      customer_phone: body.customer_phone,
-      customer_email: body.customer_email,
-      customer_state: body.customer_state || "",
-      customer_postcode: body.customer_postcode || "",
+      customer_name: fullName,
+      customer_phone: mobileNumber,
+      customer_address: "",
+      customer_city: "",
+      customer_email: "",
+      customer_state: "",
+      customer_postcode: "",
     };
 
     const response = await shurjopay.makePayment(paymentRequest);
@@ -44,6 +64,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: response,
+      orderId,
     });
   } catch (error) {
     console.error("Payment initiation error:", error);

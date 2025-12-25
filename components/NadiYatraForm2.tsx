@@ -3,6 +3,7 @@ import React, { useState } from "react";
 
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import type { MakePaymentResponse } from "shurjopay-js";
 import { AlertCircle, CheckCircle2, Minus, Plus } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -46,8 +47,8 @@ export default function NadiYatraForm2() {
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     mobileNumber: "",
-    participationType: "",
-    totalParticipants: "",
+    participationType: "single",
+    totalParticipants: "1",
     participantBreakdown: {
       adults: 1,
       children: 0,
@@ -62,8 +63,11 @@ export default function NadiYatraForm2() {
     comments: "",
   });
 
-  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [error, setError] = useState<string | null>(null);
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  // const [submitted, setSubmitted] = useState<boolean>(false);
 
   const culturalOptions: string[] = [
     "গান",
@@ -72,18 +76,6 @@ export default function NadiYatraForm2() {
     "ভাওয়াইয়া / লোকসংগীত",
     "অন্যান্য",
   ];
-
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
 
   const handleRadioChange = (name: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -100,8 +92,6 @@ export default function NadiYatraForm2() {
         : [...prev.culturalInterest, value],
     }));
   };
-
-  const [showBreakdown, setShowBreakdown] = useState(false);
 
   const handleParticipationTypeChange = (
     value: "single" | "family" | "Guest"
@@ -148,24 +138,15 @@ export default function NadiYatraForm2() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Validate required fields
     const newErrors: FormErrors = {};
 
-    if (!formData.fullName) newErrors.fullName = "এই ক্ষেত্রটি পূর্ণ করুন।";
-    if (!formData.mobileNumber)
-      newErrors.mobileNumber = "এই ক্ষেত্রটি পূর্ণ করুন।";
-    if (!formData.participationType)
-      newErrors.participationType = "এই ক্ষেত্রটি পূর্ণ করুন।";
-    if (!formData.totalParticipants)
-      newErrors.totalParticipants = "এই ক্ষেত্রটি পূর্ণ করুন।";
-    if (!formData.paymentReference)
-      newErrors.paymentReference = "এই ক্ষেত্রটি পূর্ণ করুন।";
-
     if (
-      formData.participationType === "family" &&
+      (formData.participationType === "family" ||
+        formData.participationType === "Guest") &&
       !isParticipantBreakdownValid()
     ) {
       newErrors.totalParticipants = "মোট অংশগ্রহণকারীদের সংখ্যা মিলছে না।";
@@ -173,13 +154,52 @@ export default function NadiYatraForm2() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setLoading(false);
       return;
     }
 
     const totalAmount = calculateTotalAmount();
 
-    setSubmitted(true);
-    console.log("Form Data:", formData, totalAmount);
+    const paymentPayload = {
+      ...formData, // পুরো form data
+      amount: totalAmount, // calculated amount
+    };
+
+    try {
+      const response = await fetch("/api/payment/initiate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(paymentPayload), // ✅ সব data একসাথে
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const paymentResponse: MakePaymentResponse = result.data;
+        // Redirect to shurjoPay checkout
+        window.location.href = paymentResponse.checkout_url;
+      } else {
+        setError(result.error || "Payment initiation failed");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleClear = () => {
@@ -236,45 +256,48 @@ export default function NadiYatraForm2() {
     return totalAmount;
   };
 
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-          <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            সফলভাবে জমা হয়েছে!
-          </h2>
-          <p className="text-gray-600">
-            আপনার নিবন্ধন সম্পন্ন হয়েছে। ধন্যবাদ!
-          </p>
+  // if (submitted) {
+  //   return (
+  //     <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
+  //       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+  //         <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+  //         <h2 className="text-2xl font-bold text-gray-800 mb-2">
+  //           সফলভাবে জমা হয়েছে!
+  //         </h2>
+  //         <p className="text-gray-600">
+  //           আপনার নিবন্ধন সম্পন্ন হয়েছে। ধন্যবাদ!
+  //         </p>
 
-          {/* Display form data */}
-          <div className="mt-4">
-            <h3 className="font-semibold text-gray-800">আপনার ফর্ম তথ্য:</h3>
-            <p>
-              <strong>পূর্ণ নাম:</strong> {formData.fullName}
-            </p>
-            <p>
-              <strong>মোবাইল নম্বর:</strong> {formData.mobileNumber}
-            </p>
-            <p>
-              <strong>অংশগ্রহণের ধরন:</strong> {formData.participationType}
-            </p>
-            <p>
-              <strong>মোট অংশগ্রহণকারী সংখ্যা:</strong>{" "}
-              {formData.totalParticipants}
-            </p>
-            <p>
-              <strong>টাকার পরিমাণ:</strong> {calculateTotalAmount()} টাকা
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  //         {/* Display form data */}
+  //         <div className="mt-4">
+  //           <h3 className="font-semibold text-gray-800">আপনার ফর্ম তথ্য:</h3>
+  //           <p>
+  //             <strong>পূর্ণ নাম:</strong> {formData.fullName}
+  //           </p>
+  //           <p>
+  //             <strong>মোবাইল নম্বর:</strong> {formData.mobileNumber}
+  //           </p>
+  //           <p>
+  //             <strong>অংশগ্রহণের ধরন:</strong> {formData.participationType}
+  //           </p>
+  //           <p>
+  //             <strong>মোট অংশগ্রহণকারী সংখ্যা:</strong>{" "}
+  //             {formData.totalParticipants}
+  //           </p>
+  //           <p>
+  //             <strong>টাকার পরিমাণ:</strong> {calculateTotalAmount()} টাকা
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
+    <form
+      onSubmit={handleSubmit}
+      className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4"
+    >
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="bg-linear-to-r from-emerald-600 to-teal-600 rounded-t-2xl p-8 text-white shadow-lg">
@@ -293,8 +316,6 @@ export default function NadiYatraForm2() {
           </p>
         </div>
 
-        {/* Form */}
-
         <div className="bg-white rounded-b-2xl shadow-2xl p-8 space-y-6">
           {/* Full Name */}
           <div>
@@ -307,16 +328,8 @@ export default function NadiYatraForm2() {
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
-                errors.fullName ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="আপনার উত্তর"
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition `}
             />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.fullName}
-              </p>
-            )}
           </div>
 
           {/* mobileNumber */}
@@ -330,16 +343,8 @@ export default function NadiYatraForm2() {
               name="mobileNumber"
               value={formData.mobileNumber}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
-                errors.mobileNumber ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="আপনার উত্তর"
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition `}
             />
-            {errors.mobileNumber && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.mobileNumber}
-              </p>
-            )}
           </div>
 
           {/* Participation Type */}
@@ -407,6 +412,12 @@ export default function NadiYatraForm2() {
                 ))}
               </SelectContent>
             </Select>
+            {/* ✅ Error message add করুন */}
+            {errors.totalParticipants && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" /> {errors.totalParticipants}
+              </p>
+            )}
           </div>
 
           {/* Participant Breakdown */}
@@ -514,12 +525,6 @@ export default function NadiYatraForm2() {
                     </Button>
                   </div>
                 </div>
-
-                {!isParticipantBreakdownValid() && (
-                  <p className="text-sm text-red-600 mt-2">
-                    মোট সংখ্যা {formData.totalParticipants} হতে হবে
-                  </p>
-                )}
               </div>
             )}
 
@@ -692,29 +697,6 @@ export default function NadiYatraForm2() {
             </div>
           </div>
 
-          {/* Payment Reference */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-2">
-              Payment Reference/TrxID <span className="text-red-500">*</span>
-            </label>
-            <input
-              required
-              type="text"
-              name="paymentReference"
-              value={formData.paymentReference}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
-                errors.paymentReference ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="আপনার উত্তর"
-            />
-            {errors.paymentReference && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.paymentReference}
-              </p>
-            )}
-          </div>
-
           {/* Comments */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
@@ -730,27 +712,6 @@ export default function NadiYatraForm2() {
             />
           </div>
 
-          {/* Payment Info Box */}
-          <div className="bg-linear-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-3">
-              পেমেন্ট তথ্য
-            </h3>
-            <div className="space-y-2 text-gray-700">
-              <p>
-                <span className="font-semibold">বিকাশ নম্বর:</span> 01794951003
-              </p>
-              <p>
-                <span className="font-semibold">নগদ নম্বর:</span> 016254578414
-              </p>
-              <p>
-                <span className="font-semibold">রকেট নম্বর:</span> 01235468795
-              </p>
-              <p className="text-sm text-amber-700 mt-3">
-                * পেমেন্ট করার পর Transaction ID এই ফর্মে প্রদান করুন
-              </p>
-            </div>
-          </div>
-
           {/* Display Total Amount */}
           <div className="mt-10">
             <h4 className="font-semibold text-gray-800">মোট পরিমাণ</h4>
@@ -762,10 +723,11 @@ export default function NadiYatraForm2() {
           {/* Submit Buttons */}
           <div className="flex gap-4 pt-4">
             <button
-              onClick={handleSubmit}
+              type="submit"
+              disabled={loading}
               className="flex-1 bg-linear-to-r cursor-pointer from-emerald-600 to-teal-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition transform hover:scale-105 shadow-lg"
             >
-              PAYMENT
+              {loading ? "Processing..." : "Pay Now"}
             </button>
             <button
               onClick={handleClear}
@@ -776,11 +738,17 @@ export default function NadiYatraForm2() {
           </div>
         </div>
 
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
         {/* Footer */}
         <div className="text-center mt-6 text-gray-600 text-sm">
           <p>© ২০২৬ রংপুর জেলা সমিতি, ঢাকা</p>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

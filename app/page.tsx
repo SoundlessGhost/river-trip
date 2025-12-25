@@ -1,5 +1,6 @@
 // import NadiYatraForm2 from "../components/NadiYatraForm2";
 
+// import NadiYatraForm2 from "@/components/NadiYatraForm2";
 import PaymentForm from "@/components/PaymentForm";
 
 // export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
         shurjoPay Integration
       </h1>
       <PaymentForm />
+      {/* <NadiYatraForm2 /> */}
     </main>
   );
 }
