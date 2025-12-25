@@ -82,7 +82,7 @@ class ShurjoPay {
 
   private async authenticate(): Promise<AuthResponse> {
     try {
-      console.log("🔐 Authenticating with shurjoPay...");
+      // console.log("🔐 Authenticating with shurjoPay...");
 
       const response = await fetch(`${this.config.endpoint}/api/get_token`, {
         method: "POST",
@@ -96,7 +96,7 @@ class ShurjoPay {
       });
 
       const data: AuthResponse = await response.json();
-      console.log("✅ Authentication response:", data);
+      // console.log("✅ Authentication response:", data);
 
       if (!response.ok) {
         throw new Error(`Authentication failed: ${JSON.stringify(data)}`);
@@ -155,10 +155,10 @@ class ShurjoPay {
         value4: "",
       };
 
-      console.log("📤 Payment request data:", {
-        ...paymentData,
-        token: "***hidden***",
-      });
+      // console.log("📤 Payment request data:", {
+      //   ...paymentData,
+      //   token: "***hidden***",
+      // });
 
       // Make payment request
       const response = await fetch(`${this.config.endpoint}/api/secret-pay`, {
@@ -171,7 +171,7 @@ class ShurjoPay {
       });
 
       const data = await response.json();
-      console.log("📥 Payment response:", data);
+      // console.log("📥 Payment response:", data);
 
       if (!response.ok) {
         throw new Error(`Payment initiation failed: ${JSON.stringify(data)}`);
@@ -184,8 +184,8 @@ class ShurjoPay {
         );
       }
 
-      console.log("✅ Payment initiated successfully");
-      console.log("🔗 Checkout URL:", data.checkout_url);
+      // console.log("✅ Payment initiated successfully");
+      // console.log("🔗 Checkout URL:", data.checkout_url);
 
       return data;
     } catch (error) {
@@ -196,7 +196,7 @@ class ShurjoPay {
 
   async verifyPayment(orderId: string): Promise<VerifyPaymentResponse> {
     try {
-      console.log("🔍 Verifying payment for order:", orderId);
+      // console.log("🔍 Verifying payment for order:", orderId);
 
       // Get authentication token
       const authData = await this.authenticate();
@@ -214,7 +214,7 @@ class ShurjoPay {
       });
 
       const data = await response.json();
-      console.log("📥 Verification response:", data);
+      // console.log("📥 Verification response:", data);
 
       if (!response.ok) {
         throw new Error(`Payment verification failed: ${JSON.stringify(data)}`);
@@ -223,7 +223,7 @@ class ShurjoPay {
       // API returns array, we need first item
       const verificationData = Array.isArray(data) ? data[0] : data;
 
-      console.log("✅ Payment verified successfully");
+      // console.log("✅ Payment verified successfully");
       return verificationData;
     } catch (error) {
       console.error("❌ Verification error:", error);

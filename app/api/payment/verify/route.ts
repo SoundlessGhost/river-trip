@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { shurjopay } from "@/lib/shurjopay";
+import { Resend } from "resend";
+import { generatePaymentEmail } from "@/lib/email-template";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +17,30 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await shurjopay.verifyPayment(order_id);
+
+    // ✅ Only send email if payment is successful
+    if (
+      response.bank_status === "Success" ||
+      response.sp_message === "Success"
+    ) {
+      try {
+        await resend.emails.send({
+          from: "Nadi Yatra <onboarding@resend.dev>",
+          to: process.env.ADMIN_EMAIL!,
+          subject: `✅ PAYMENT SUCCESSFUL - ${response.order_id}`,
+          html: generatePaymentEmail(response),
+        });
+
+        console.log("✅ PAYMENT EMAIL SENT SUCCESSFULLY TO ADMIN");
+      } catch (emailError) {
+        console.error("❌ PAYMENT EMAIL ERROR:", emailError);
+      }
+    } else {
+      console.log(
+        "⚠️ Payment not successful, email not sent:",
+        response.bank_status
+      );
+    }
 
     return NextResponse.json({
       success: true,

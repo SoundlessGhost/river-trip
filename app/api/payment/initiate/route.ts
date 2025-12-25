@@ -1,20 +1,31 @@
+import { Resend } from "resend";
 import { shurjopay } from "@/lib/shurjopay";
 import type { PaymentRequest } from "@/lib/shurjopay";
 import { NextRequest, NextResponse } from "next/server";
+import { generateRegistrationEmail } from "@/lib/email-template";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const {
+      amount,
+      fullName,
+      mobileNumber,
+      participationType,
+      totalParticipants,
+      participantBreakdown,
+      culturalInterest,
+      sportsInterest,
+      contributionAgreement,
+      sponsorshipAgreement,
+      volunteerInterest,
+      comments,
+    } = body;
 
     // Validate required fields
-    if (
-      !body.amount ||
-      !body.customer_name ||
-      !body.customer_email ||
-      !body.customer_phone ||
-      !body.customer_address ||
-      !body.customer_city
-    ) {
+    if (!amount || !fullName || !mobileNumber) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
@@ -26,17 +37,45 @@ export async function POST(request: NextRequest) {
       .toString(36)
       .substr(2, 9)}`;
 
+    // ✅ Admin কে email পাঠান
+    try {
+      await resend.emails.send({
+        from: "Nadi Yatra <onboarding@resend.dev>",
+        to: process.env.ADMIN_EMAIL!,
+        subject: `নতুন নিবন্ধন - ${fullName} - ${orderId}`,
+        html: generateRegistrationEmail({
+          orderId,
+          fullName,
+          mobileNumber,
+          participationType,
+          totalParticipants,
+          participantBreakdown,
+          culturalInterest,
+          sportsInterest,
+          contributionAgreement,
+          sponsorshipAgreement,
+          volunteerInterest,
+          comments,
+          amount,
+        }),
+      });
+
+      console.log("✅ Email sent successfully to admin");
+    } catch (emailError) {
+      console.error("❌ Email sending failed:", emailError);
+    }
+
     const paymentRequest: PaymentRequest = {
       order_id: orderId,
       amount: parseFloat(body.amount),
       currency: "BDT",
-      customer_name: body.customer_name,
-      customer_address: body.customer_address,
-      customer_city: body.customer_city,
-      customer_phone: body.customer_phone,
-      customer_email: body.customer_email,
-      customer_state: body.customer_state || "",
-      customer_postcode: body.customer_postcode || "",
+      customer_name: fullName,
+      customer_phone: mobileNumber,
+      customer_address: "Rangpur",
+      customer_city: "Rangpur",
+      customer_email: "",
+      customer_state: "",
+      customer_postcode: "",
     };
 
     const response = await shurjopay.makePayment(paymentRequest);
@@ -44,6 +83,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: response,
+      orderId,
     });
   } catch (error) {
     console.error("Payment initiation error:", error);

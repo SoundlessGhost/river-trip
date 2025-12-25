@@ -31,7 +31,6 @@ interface FormData {
   contributionAgreement: string;
   sponsorshipAgreement: string;
   volunteerInterest: string;
-  paymentReference: string;
   comments: string;
 }
 
@@ -40,7 +39,6 @@ interface FormErrors {
   mobileNumber?: string;
   participationType?: string;
   totalParticipants?: string;
-  paymentReference?: string;
 }
 
 export default function NadiYatraForm2() {
@@ -59,7 +57,6 @@ export default function NadiYatraForm2() {
     contributionAgreement: "",
     sponsorshipAgreement: "",
     volunteerInterest: "",
-    paymentReference: "",
     comments: "",
   });
 
@@ -161,9 +158,15 @@ export default function NadiYatraForm2() {
     const totalAmount = calculateTotalAmount();
 
     const paymentPayload = {
-      ...formData, // পুরো form data
-      amount: totalAmount, // calculated amount
+      ...formData,
+      sportsInterest: formData.sportsInterest || "না",
+      contributionAgreement: formData.contributionAgreement || "না",
+      sponsorshipAgreement: formData.sponsorshipAgreement || "না",
+      volunteerInterest: formData.volunteerInterest || "না",
+      amount: totalAmount,
     };
+
+    console.log(paymentPayload);
 
     try {
       const response = await fetch("/api/payment/initiate", {
@@ -171,7 +174,7 @@ export default function NadiYatraForm2() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(paymentPayload), // ✅ সব data একসাথে
+        body: JSON.stringify(paymentPayload),
       });
 
       const result = await response.json();
@@ -218,7 +221,6 @@ export default function NadiYatraForm2() {
       contributionAgreement: "",
       sponsorshipAgreement: "",
       volunteerInterest: "",
-      paymentReference: "",
       comments: "",
     });
     setShowBreakdown(false);
