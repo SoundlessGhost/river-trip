@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { MakePaymentResponse } from "shurjopay-js";
@@ -64,7 +63,6 @@ export default function NadiYatraForm2() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
-  // const [submitted, setSubmitted] = useState<boolean>(false);
 
   const culturalOptions: string[] = [
     "গান",
@@ -123,7 +121,6 @@ export default function NadiYatraForm2() {
       ? currentValue + 1
       : Math.max(0, currentValue - 1);
 
-    // Ensure adults count is at least 1
     if (type === "adults" && newValue < 1) return;
 
     setFormData({
@@ -181,7 +178,6 @@ export default function NadiYatraForm2() {
 
       if (result.success && result.data) {
         const paymentResponse: MakePaymentResponse = result.data;
-        // Redirect to shurjoPay checkout
         window.location.href = paymentResponse.checkout_url;
       } else {
         setError(result.error || "Payment initiation failed");
@@ -240,13 +236,11 @@ export default function NadiYatraForm2() {
     let childPrice = 0;
     let infantPrice = 0;
 
-    // Check if the participation type is "অথিতি" (Guest)
     if (formData.participationType === "Guest") {
-      adultPrice = 1500; // Price per adult for guests
-      childPrice = 800; // Price per child (6-12 years) for guests
-      infantPrice = 0; // No charge for infants
+      adultPrice = 1500;
+      childPrice = 800;
+      infantPrice = 0;
     } else {
-      // For "family" or "single", use previous pricing
       adultPrice = 1000;
       childPrice = 800;
       infantPrice = 0;
@@ -258,70 +252,35 @@ export default function NadiYatraForm2() {
     return totalAmount;
   };
 
-  // if (submitted) {
-  //   return (
-  //     <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
-  //       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-  //         <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-  //         <h2 className="text-2xl font-bold text-gray-800 mb-2">
-  //           সফলভাবে জমা হয়েছে!
-  //         </h2>
-  //         <p className="text-gray-600">
-  //           আপনার নিবন্ধন সম্পন্ন হয়েছে। ধন্যবাদ!
-  //         </p>
-
-  //         {/* Display form data */}
-  //         <div className="mt-4">
-  //           <h3 className="font-semibold text-gray-800">আপনার ফর্ম তথ্য:</h3>
-  //           <p>
-  //             <strong>পূর্ণ নাম:</strong> {formData.fullName}
-  //           </p>
-  //           <p>
-  //             <strong>মোবাইল নম্বর:</strong> {formData.mobileNumber}
-  //           </p>
-  //           <p>
-  //             <strong>অংশগ্রহণের ধরন:</strong> {formData.participationType}
-  //           </p>
-  //           <p>
-  //             <strong>মোট অংশগ্রহণকারী সংখ্যা:</strong>{" "}
-  //             {formData.totalParticipants}
-  //           </p>
-  //           <p>
-  //             <strong>টাকার পরিমাণ:</strong> {calculateTotalAmount()} টাকা
-  //           </p>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <form
       onSubmit={handleSubmit}
-      className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4"
+      className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-4 sm:py-8 px-3 sm:px-4"
     >
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="bg-linear-to-r from-emerald-600 to-teal-600 rounded-t-2xl p-8 text-white shadow-lg">
-          <h1 className="text-4xl font-bold mb-3">নদী যাত্রা ২০২৬</h1>
-          <p className="text-emerald-50 text-lg">
+        {/* Header - Fully Responsive */}
+        <div className="bg-linear-to-r from-emerald-600 to-teal-600 rounded-t-2xl p-4 sm:p-6 md:p-8 text-white shadow-lg">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">
+            নদী যাত্রা ২০২৬
+          </h1>
+          <p className="text-emerald-50 text-sm sm:text-base md:text-lg">
             আয়োজনকৃতঃ রংপুর জেলা সমিতি, ঢাকা
           </p>
-          <p className="text-emerald-100 mt-2">
+          <p className="text-emerald-100 mt-1 sm:mt-2 text-xs sm:text-sm">
             তারিখঃ ১৭ জানুয়ারি ২০২৬ (শনিবার)
           </p>
-          <p className="text-emerald-100">
-            নদী মেঘনার জলরাশিতে শেকড়ের মিলনমেলা
+          <p className="text-emerald-100 text-xs sm:text-sm">
+            নদী মেঘনার জলরাশিতে শেকড়ের মিলনমেলা
           </p>
-          <p className="text-emerald-200 font-semibold mt-3">
+          <p className="text-emerald-200 font-semibold mt-2 sm:mt-3 text-sm sm:text-base">
             সদস্য অংশগ্রহণ ফরম
           </p>
         </div>
 
-        <div className="bg-white rounded-b-2xl shadow-2xl p-8 space-y-6">
+        <div className="bg-white rounded-b-2xl shadow-2xl p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
           {/* Full Name */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
               পূর্ণ নাম <span className="text-red-500">*</span>
             </label>
             <input
@@ -330,13 +289,13 @@ export default function NadiYatraForm2() {
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition `}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
             />
           </div>
 
-          {/* mobileNumber */}
+          {/* Mobile Number */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
               মোবাইল নম্বর <span className="text-red-500">*</span>
             </label>
             <input
@@ -345,39 +304,48 @@ export default function NadiYatraForm2() {
               name="mobileNumber"
               value={formData.mobileNumber}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition `}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
             />
           </div>
 
-          {/* Participation Type */}
+          {/* Participation Type - Responsive Layout */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">
+            <Label className="text-sm sm:text-base font-semibold">
               অংশগ্রহণের ধরন <span className="text-red-500">*</span>
             </Label>
 
             <RadioGroup
               value={formData.participationType}
               onValueChange={handleParticipationTypeChange}
-              className="flex space-x-6"
+              className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0"
               required
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="single" id="single" />
-                <Label htmlFor="single" className="cursor-pointer">
+                <Label
+                  htmlFor="single"
+                  className="cursor-pointer text-sm sm:text-base"
+                >
                   একক <span className="text-xs">( রংপুর বাসী )</span>
                 </Label>
               </div>
 
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="family" id="family" />
-                <Label htmlFor="family" className="cursor-pointer">
+                <Label
+                  htmlFor="family"
+                  className="cursor-pointer text-sm sm:text-base"
+                >
                   পরিবারসহ <span className="text-xs">( রংপুর বাসী )</span>
                 </Label>
               </div>
 
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="Guest" id="Guest" />
-                <Label htmlFor="Guest" className="cursor-pointer">
+                <Label
+                  htmlFor="Guest"
+                  className="cursor-pointer text-sm sm:text-base"
+                >
                   অথিতি
                 </Label>
               </div>
@@ -388,7 +356,7 @@ export default function NadiYatraForm2() {
           <div className="space-y-2">
             <Label
               htmlFor="totalParticipants"
-              className="text-base font-semibold"
+              className="text-sm sm:text-base font-semibold"
             >
               মোট অংশগ্রহণকারী সংখ্যা (নিজসহ){" "}
               <span className="text-red-500">*</span>
@@ -401,9 +369,9 @@ export default function NadiYatraForm2() {
               required={
                 formData.participationType === "family" ||
                 formData.participationType === "Guest"
-              } // Enable for family and Guest
+              }
             >
-              <SelectTrigger className="w-full p-4 rounded-md border border-gray-300 shadow-sm">
+              <SelectTrigger className="w-full p-3 sm:p-4 rounded-md border border-gray-300 shadow-sm text-sm sm:text-base">
                 <SelectValue placeholder="নির্বাচন করুন" />
               </SelectTrigger>
               <SelectContent>
@@ -414,52 +382,54 @@ export default function NadiYatraForm2() {
                 ))}
               </SelectContent>
             </Select>
-            {/* ✅ Error message add করুন */}
             {errors.totalParticipants && (
-              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" /> {errors.totalParticipants}
+              <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />{" "}
+                {errors.totalParticipants}
               </p>
             )}
           </div>
 
-          {/* Participant Breakdown */}
+          {/* Participant Breakdown - Responsive */}
           {showBreakdown &&
             (formData.participationType === "family" ||
               formData.participationType === "Guest") &&
             formData.totalParticipants && (
-              <div className="space-y-4 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
-                <h3 className="font-semibold text-base text-cyan-800">
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+                <h3 className="font-semibold text-sm sm:text-base text-cyan-800">
                   অংশগ্রহণকারীদের বিস্তারিত
                 </h3>
 
                 {/* Adults */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">প্রাপ্তবয়স্ক</p>
+                    <p className="font-medium text-sm sm:text-base">
+                      প্রাপ্তবয়স্ক
+                    </p>
                     <p className="text-xs text-gray-600">13 বছর এবং তার পরে</p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                       onClick={() => updateParticipantCount("adults", false)}
                       disabled={formData.participantBreakdown.adults <= 1}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
-                    <span className="w-8 text-center font-semibold">
+                    <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">
                       {formData.participantBreakdown.adults}
                     </span>
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                       onClick={() => updateParticipantCount("adults", true)}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -467,31 +437,31 @@ export default function NadiYatraForm2() {
                 {/* Children */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">শিশু</p>
+                    <p className="font-medium text-sm sm:text-base">শিশু</p>
                     <p className="text-xs text-gray-600">৬-১২ বছর</p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                       onClick={() => updateParticipantCount("children", false)}
                       disabled={formData.participantBreakdown.children === 0}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
-                    <span className="w-8 text-center font-semibold">
+                    <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">
                       {formData.participantBreakdown.children}
                     </span>
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                       onClick={() => updateParticipantCount("children", true)}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -499,40 +469,40 @@ export default function NadiYatraForm2() {
                 {/* Infants */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">শিশু</p>
+                    <p className="font-medium text-sm sm:text-base">শিশু</p>
                     <p className="text-xs text-gray-600">৫ বছরের নিচে</p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                       onClick={() => updateParticipantCount("infants", false)}
                       disabled={formData.participantBreakdown.infants === 0}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
-                    <span className="w-8 text-center font-semibold">
+                    <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">
                       {formData.participantBreakdown.infants}
                     </span>
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                       onClick={() => updateParticipantCount("infants", true)}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
               </div>
             )}
 
-          {/* Cultural Interest */}
+          {/* Cultural Interest - Responsive */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-3">
+            <label className="block text-gray-700 font-semibold mb-3 text-sm sm:text-base">
               সাংস্কৃতিক অনুষ্ঠানে অংশগ্রহণে আগ্রহী কি?
             </label>
             <div className="space-y-2">
@@ -540,32 +510,34 @@ export default function NadiYatraForm2() {
                 <div
                   key={option}
                   onClick={() => handleCheckboxChange(option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                  className={`flex items-center p-2 sm:p-3 border-2 rounded-lg cursor-pointer transition ${
                     formData.culturalInterest.includes(option)
                       ? "border-emerald-500 bg-emerald-50"
                       : "border-gray-200 hover:bg-emerald-50"
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded border-2 flex items-center justify-center ${
                       formData.culturalInterest.includes(option)
                         ? "border-emerald-600 bg-emerald-600"
                         : "border-gray-400"
                     }`}
                   >
                     {formData.culturalInterest.includes(option) && (
-                      <CheckCircle2 className="w-4 h-4 text-white" />
+                      <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     )}
                   </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
+                  <span className="ml-2 sm:ml-3 text-gray-700 text-sm sm:text-base">
+                    {option}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Want Sports */}
+          {/* Sports Interest */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-3">
+            <label className="block text-gray-700 font-semibold mb-3 text-sm sm:text-base">
               খেলায় অংশগ্রহণ করতে ইচ্ছুক?
             </label>
             <div className="space-y-2">
@@ -573,32 +545,34 @@ export default function NadiYatraForm2() {
                 <div
                   key={option}
                   onClick={() => handleRadioChange("sportsInterest", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                  className={`flex items-center p-2 sm:p-3 border-2 rounded-lg cursor-pointer transition ${
                     formData.sportsInterest === option
                       ? "border-emerald-500 bg-emerald-50"
                       : "border-gray-200 hover:bg-emerald-50"
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center ${
                       formData.sportsInterest === option
                         ? "border-emerald-600"
                         : "border-gray-400"
                     }`}
                   >
                     {formData.sportsInterest === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                      <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-600"></div>
                     )}
                   </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
+                  <span className="ml-2 sm:ml-3 text-gray-700 text-sm sm:text-base">
+                    {option}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Support Program */}
+          {/* Contribution Agreement */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-3">
+            <label className="block text-gray-700 font-semibold mb-3 text-sm sm:text-base">
               আনুমানিক অংশগ্রহণে টাকা প্রদান করতে সম্মত আছেন কি?
             </label>
             <div className="space-y-2">
@@ -608,32 +582,34 @@ export default function NadiYatraForm2() {
                   onClick={() =>
                     handleRadioChange("contributionAgreement", option)
                   }
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                  className={`flex items-center p-2 sm:p-3 border-2 rounded-lg cursor-pointer transition ${
                     formData.contributionAgreement === option
                       ? "border-emerald-500 bg-emerald-50"
                       : "border-gray-200 hover:bg-emerald-50"
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center ${
                       formData.contributionAgreement === option
                         ? "border-emerald-600"
                         : "border-gray-400"
                     }`}
                   >
                     {formData.contributionAgreement === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                      <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-600"></div>
                     )}
                   </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
+                  <span className="ml-2 sm:ml-3 text-gray-700 text-sm sm:text-base">
+                    {option}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Gift Donation */}
+          {/* Sponsorship Agreement */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-3">
+            <label className="block text-gray-700 font-semibold mb-3 text-sm sm:text-base">
               কোনো স্পন্সর বা অনুদান বা উপহার প্রদান করতে সম্মত আছেন কি?{" "}
             </label>
             <div className="space-y-2">
@@ -643,57 +619,61 @@ export default function NadiYatraForm2() {
                   onClick={() =>
                     handleRadioChange("sponsorshipAgreement", option)
                   }
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                  className={`flex items-center p-2 sm:p-3 border-2 rounded-lg cursor-pointer transition ${
                     formData.sponsorshipAgreement === option
                       ? "border-emerald-500 bg-emerald-50"
                       : "border-gray-200 hover:bg-emerald-50"
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center ${
                       formData.sponsorshipAgreement === option
                         ? "border-emerald-600"
                         : "border-gray-400"
                     }`}
                   >
                     {formData.sponsorshipAgreement === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                      <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-600"></div>
                     )}
                   </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
+                  <span className="ml-2 sm:ml-3 text-gray-700 text-sm sm:text-base">
+                    {option}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Volunteer */}
+          {/* Volunteer Interest */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-3">
-              আয়োজনে স্বেচ্ছাসেবক হিসেবে কাজ করতে আগ্রহী কি?
+            <label className="block text-gray-700 font-semibold mb-3 text-sm sm:text-base">
+              আয়োজনে স্বেচ্ছাসেবক হিসেবে কাজ করতে আগ্রহী কি?
             </label>
             <div className="space-y-2">
               {["হ্যাঁ", "না"].map((option) => (
                 <div
                   key={option}
                   onClick={() => handleRadioChange("volunteerInterest", option)}
-                  className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                  className={`flex items-center p-2 sm:p-3 border-2 rounded-lg cursor-pointer transition ${
                     formData.volunteerInterest === option
                       ? "border-emerald-500 bg-emerald-50"
                       : "border-gray-200 hover:bg-emerald-50"
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center ${
                       formData.volunteerInterest === option
                         ? "border-emerald-600"
                         : "border-gray-400"
                     }`}
                   >
                     {formData.volunteerInterest === option && (
-                      <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                      <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-600"></div>
                     )}
                   </div>
-                  <span className="ml-3 text-gray-700">{option}</span>
+                  <span className="ml-2 sm:ml-3 text-gray-700 text-sm sm:text-base">
+                    {option}
+                  </span>
                 </div>
               ))}
             </div>
@@ -701,7 +681,7 @@ export default function NadiYatraForm2() {
 
           {/* Comments */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
               মতামত / প্রত্যাশা (যদি থাকে)
             </label>
             <textarea
@@ -709,31 +689,34 @@ export default function NadiYatraForm2() {
               value={formData.comments}
               onChange={handleInputChange}
               rows={4}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition resize-none"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition resize-none text-sm sm:text-base"
               placeholder="আপনার উত্তর"
             />
           </div>
 
-          {/* Display Total Amount */}
-          <div className="mt-10">
-            <h4 className="font-semibold text-gray-800">মোট পরিমাণ</h4>
-            <p className="text-gray-700">
+          {/* Total Amount - Responsive */}
+          <div className="mt-6 sm:mt-10 p-3 sm:p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+            <h4 className="font-semibold text-gray-800 text-sm sm:text-base mb-1">
+              মোট পরিমাণ
+            </h4>
+            <p className="text-gray-700 text-lg sm:text-xl font-bold ">
               টাকার পরিমাণ: {calculateTotalAmount()} টাকা
             </p>
           </div>
 
-          {/* Submit Buttons */}
-          <div className="flex gap-4 pt-4">
+          {/* Submit Buttons - Responsive */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-linear-to-r cursor-pointer from-emerald-600 to-teal-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition transform hover:scale-105 shadow-lg"
+              className="w-full sm:flex-1 bg-linear-to-r cursor-pointer from-emerald-600 to-teal-600 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition transform hover:scale-105 shadow-lg text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Processing..." : "Pay Now"}
             </button>
             <button
+              type="button"
               onClick={handleClear}
-              className="px-6 py-4 border-2 cursor-pointer border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-gray-700"
+              className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 border-2 cursor-pointer border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-gray-700 text-sm sm:text-base"
             >
               ফর্ম মুছুন
             </button>
@@ -741,13 +724,13 @@ export default function NadiYatraForm2() {
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded mt-4 text-sm sm:text-base">
             {error}
           </div>
         )}
 
         {/* Footer */}
-        <div className="text-center mt-6 text-gray-600 text-sm">
+        <div className="text-center mt-4 sm:mt-6 text-gray-600 text-xs sm:text-sm">
           <p>© ২০২৬ রংপুর জেলা সমিতি, ঢাকা</p>
         </div>
       </div>

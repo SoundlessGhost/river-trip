@@ -82,7 +82,7 @@ class ShurjoPay {
 
   private async authenticate(): Promise<AuthResponse> {
     try {
-      // console.log("🔐 Authenticating with shurjoPay...");
+      console.log("🔐 Authenticating with shurjoPay...");
 
       const response = await fetch(`${this.config.endpoint}/api/get_token`, {
         method: "POST",
@@ -96,7 +96,7 @@ class ShurjoPay {
       });
 
       const data: AuthResponse = await response.json();
-      // console.log("✅ Authentication response:", data);
+      console.log("✅ Authentication response:", data);
 
       if (!response.ok) {
         throw new Error(`Authentication failed: ${JSON.stringify(data)}`);
