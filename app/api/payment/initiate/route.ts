@@ -1,30 +1,24 @@
-import { Resend } from "resend";
+// app/api/payment/initiate/route.ts
+
 import { shurjopay } from "@/lib/shurjopay";
+import { PrismaClient } from "@prisma/client";
 import type { PaymentRequest } from "@/lib/shurjopay";
 import { NextRequest, NextResponse } from "next/server";
-import { generateRegistrationEmail } from "@/lib/email-template";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      amount,
       fullName,
       mobileNumber,
       participationType,
-      totalParticipants,
       participantBreakdown,
-      culturalInterest,
-      sportsInterest,
-      contributionAgreement,
-      sponsorshipAgreement,
-      volunteerInterest,
-      comments,
+      amount,
     } = body;
 
-    // Validate required fields
+    // VALIDATE REQUIRED FIELDS
     if (!amount || !fullName || !mobileNumber) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -32,47 +26,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique order ID
-    const orderId = `ORDER-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
+    // ✅ FIRSTLY DATABASE এ REGISTRATION SAVE
+    const registration = await prisma.registration.create({
+      data: {
+        fullName,
+        mobileNumber,
+        participationType,
+        totalParticipants:
+          participantBreakdown.adults +
+          participantBreakdown.children +
+          participantBreakdown.infants,
+        adults: participantBreakdown.adults,
+        children: participantBreakdown.children,
+        infants: participantBreakdown.infants,
+        amount,
+        paymentStatus: "PENDING",
+      },
+    });
 
-    // ✅ Admin কে email পাঠান
-    try {
-      await resend.emails.send({
-        from: "Nadi Yatra <onboarding@resend.dev>",
-        to: process.env.ADMIN_EMAIL!,
-        subject: `নতুন নিবন্ধন - ${fullName} - ${orderId}`,
-        html: generateRegistrationEmail({
-          orderId,
-          fullName,
-          mobileNumber,
-          participationType,
-          totalParticipants,
-          participantBreakdown,
-          culturalInterest,
-          sportsInterest,
-          contributionAgreement,
-          sponsorshipAgreement,
-          volunteerInterest,
-          comments,
-          amount,
-        }),
-      });
+    console.log("✅ REGISTRATION SAVED TO DATABASE:", registration.id);
 
-      console.log("✅ Email sent successfully to admin");
-    } catch (emailError) {
-      console.error("❌ Email sending failed:", emailError);
-    }
-
+    // PAYMENT INITIATE
     const paymentRequest: PaymentRequest = {
-      order_id: orderId,
-      amount: parseFloat(body.amount),
       currency: "BDT",
+      customer_city: "Rangpur",
+      customer_address: "Rangpur",
       customer_name: fullName,
       customer_phone: mobileNumber,
-      customer_address: "Rangpur",
-      customer_city: "Rangpur",
+      order_id: registration.id,
+      amount: parseFloat(body.amount),
       customer_email: "",
       customer_state: "",
       customer_postcode: "",
@@ -80,11 +62,20 @@ export async function POST(request: NextRequest) {
 
     const response = await shurjopay.makePayment(paymentRequest);
 
-    return NextResponse.json({
-      success: true,
-      data: response,
-      orderId,
-    });
+    if (response.checkout_url) {
+      // TRANSACTION ID UPDATE
+      await prisma.registration.update({
+        where: { id: registration.id },
+        data: { transactionId: response.sp_order_id },
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: response,
+      });
+    }
+
+    throw new Error("Failed to initiate payment");
   } catch (error) {
     console.error("Payment initiation error:", error);
     return NextResponse.json(

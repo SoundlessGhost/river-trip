@@ -326,7 +326,7 @@ export default function NadiYatraForm2() {
                   htmlFor="single"
                   className="cursor-pointer text-sm sm:text-base"
                 >
-                  একক <span className="text-xs">( রংপুর বাসী )</span>
+                  একক <span className="text-xs">( রংপুর )</span>
                 </Label>
               </div>
 
@@ -336,7 +336,7 @@ export default function NadiYatraForm2() {
                   htmlFor="family"
                   className="cursor-pointer text-sm sm:text-base"
                 >
-                  পরিবারসহ <span className="text-xs">( রংপুর বাসী )</span>
+                  পরিবারসহ <span className="text-xs">( রংপুর )</span>
                 </Label>
               </div>
 

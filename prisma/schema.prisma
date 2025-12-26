@@ -1,0 +1,49 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Registration {
+  id                String            @id @default(cuid())
+  fullName          String
+  mobileNumber      String
+  participationType ParticipationType
+  totalParticipants Int               @default(1)
+
+  // Participant breakdown
+  adults   Int @default(1)
+  children Int @default(0)
+  infants  Int @default(0)
+
+  // Payment info
+  amount        Int
+  paymentStatus PaymentStatus @default(PENDING)
+  transactionId String?       @unique
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mobileNumber])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+enum ParticipationType {
+  single
+  family
+  Guest
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
