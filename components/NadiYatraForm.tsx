@@ -4,6 +4,7 @@ import { Minus, Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import Image from "next/image";
 
 interface ParticipantCount {
   adults: number;
@@ -171,7 +172,19 @@ export default function NadiYatraForm() {
     <div className="min-h-screen bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 py-4 sm:py-8 px-3 sm:px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header - Fully Responsive */}
-        <div className="bg-linear-to-r from-emerald-600 to-teal-600 rounded-t-2xl p-4 sm:p-6 md:p-8 text-white shadow-lg">
+        <div className="bg-linear-to-r text-center from-emerald-600 to-teal-600 rounded-t-2xl p-4 sm:p-6 md:p-8 text-white shadow-lg">
+          {/* Logo */}
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="relative h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-full bg-white p-1 shadow-md">
+              <Image
+                src="/rangpur-logo.jpeg"
+                alt="রংপুর জেলা সমিতি লোগো"
+                fill
+                className="object-contain rounded-full"
+                priority
+              />
+            </div>
+          </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">
             নদী যাত্রা ২০২৬
           </h1>
