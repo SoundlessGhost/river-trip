@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { shurjopay } from "@/lib/shurjopay";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { sendSMS, generateRegistrationSMS } from "@/lib/sms-service";
 import { generateAdminEmail, generateUserEmail } from "@/lib/email-template";
 
 const prisma = new PrismaClient();
@@ -107,10 +108,19 @@ export async function POST(request: NextRequest) {
       // ✅ SEND 2 EMAILS - ADMIN এবং USER
       if (registration) {
         try {
+          // 1️⃣ SEND SMS
+          const smsMessage = generateRegistrationSMS(
+            registration.fullName,
+            registration.amount,
+            order_id
+          );
+
+          await sendSMS(registration.mobileNumber, smsMessage);
+          console.log("✅ SMS SENT TO:", registration.mobileNumber);
           // 1️⃣ ADMIN EMAIL
           if (process.env.ADMIN_EMAIL) {
             await resend.emails.send({
-              from: "Nadi Yatra <onboarding@resend.dev>",
+              from: "Nadi Yatra <noreply@send.dekhai.org>",
               to: process.env.ADMIN_EMAIL,
               subject: `✅ NEW REGISTRATION - ${registration.fullName}`,
               html: generateAdminEmail(response, registration),
@@ -121,7 +131,7 @@ export async function POST(request: NextRequest) {
           // 2️⃣ USER EMAIL
           if (registration.email) {
             await resend.emails.send({
-              from: "Nadi Yatra <onboarding@resend.dev>",
+              from: "Nadi Yatra <noreply@send.dekhai.org>",
               to: registration.email,
               subject: `✅ নদী যাত্রা ২০২৬ - আপনার রেজিস্ট্রেশন সফল হয়েছে`,
               html: generateUserEmail(response, registration),
