@@ -11,6 +11,7 @@ datasource db {
 
 model Registration {
   id                String            @id @default(cuid())
+  email             String
   fullName          String
   mobileNumber      String
   participationType ParticipationType

@@ -12,6 +12,7 @@ interface ParticipantCount {
 }
 
 interface FormData {
+  email: string;
   fullName: string;
   mobileNumber: string;
   participationType: "single" | "family" | "Guest" | "";
@@ -20,6 +21,7 @@ interface FormData {
 }
 
 interface FormErrors {
+  email?: string;
   fullName?: string;
   mobileNumber?: string;
   participationType?: string;
@@ -30,6 +32,7 @@ export default function NadiYatraForm() {
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     mobileNumber: "",
+    email: "",
     participationType: "single",
     totalParticipants: "1",
     participantBreakdown: {
@@ -128,6 +131,7 @@ export default function NadiYatraForm() {
 
   const handleClear = () => {
     setFormData({
+      email: "",
       fullName: "",
       mobileNumber: "",
       participationType: "",
@@ -212,6 +216,22 @@ export default function NadiYatraForm() {
               name="mobileNumber"
               value={formData.mobileNumber}
               onChange={handleInputChange}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
+            />
+          </div>
+
+          {/* Email section */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2 text-sm sm:text-base">
+              ইমেইল <span className="text-red-500">*</span>
+            </label>
+            <input
+              required
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="example@gmail.com"
               className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 rounded-lg focus:outline-none border-gray-300 focus:ring-2 focus:ring-emerald-500 transition text-sm sm:text-base"
             />
           </div>

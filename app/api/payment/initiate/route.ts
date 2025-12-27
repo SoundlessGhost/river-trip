@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
+      email,
       fullName,
       mobileNumber,
       participationType,
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // VALIDATE REQUIRED FIELDS
-    if (!amount || !fullName || !mobileNumber) {
+    if (!amount || !fullName || !mobileNumber || !email) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     const registration = await prisma.registration.create({
       data: {
         fullName,
+        email,
         mobileNumber,
         participationType,
         totalParticipants:
