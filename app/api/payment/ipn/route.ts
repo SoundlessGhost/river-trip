@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
     const transactionId = sp_order_id || `TEST_GET_${Date.now()}`;
 
     const registration = await prisma.registration.findUnique({
-      where: { id: order_id },
+      where: { id: transactionId },
     });
 
     if (!registration) {
