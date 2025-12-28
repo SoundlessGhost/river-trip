@@ -157,7 +157,7 @@ export default function NadiYatraForm() {
       childPrice = 800;
       infantPrice = 0;
     } else {
-      adultPrice = 1000;
+      adultPrice = 10;
       childPrice = 800;
       infantPrice = 0;
     }
