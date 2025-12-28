@@ -250,7 +250,7 @@ export default function NadiYatraForm() {
           </div>
 
           {/* Participation Type - Responsive Layout */}
-          <div className="space-y-3 mb-8">
+          <div className="space-y-3 mb-4">
             <Label className="text-sm sm:text-base font-semibold">
               অংশগ্রহণের ধরন <span className="text-red-500">*</span>
             </Label>
@@ -414,8 +414,13 @@ export default function NadiYatraForm() {
               </div>
             )}
 
+          <p className="text-[10px]">
+            ( জেলা সমিতির সদস্য হিসেবে অন্তর্ভুক্ত না হলে অতিথি হিসেবে নিবন্ধন
+            করুন )
+          </p>
+
           {/* Total Amount - Responsive */}
-          <div className="mt-6 sm:mt-10 p-3 sm:p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+          <div className="mt-2 sm:mt-5 p-3 sm:p-4 bg-emerald-50 rounded-lg border border-emerald-200">
             <h4 className="font-semibold text-gray-800 text-sm sm:text-base mb-1">
               মোট পরিমাণ
             </h4>
@@ -442,6 +447,15 @@ export default function NadiYatraForm() {
               ফর্ম মুছুন
             </button>
           </div>
+
+          <p className="text-xs">
+            জেলা সমিতির সদস্য অন্তর্ভুক্তি ফি: সাধারণ সদস্য: ১০০০/- এবং আজীবন
+            সদস্য: ১০,০০০/-:
+          </p>
+          <p className="text-xs -mt-4">
+            যোগাযোগ: তারিকুল ইসলাম: 017 3709 7454 এবং মো: মোস্তাকিম খান: 015
+            1986 6666
+          </p>
         </div>
 
         {error && (

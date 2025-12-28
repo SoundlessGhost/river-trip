@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ✅ DATABASE থেকে registration info fetch করুন
+    // ✅ FROM DATABASE REGISTRATION INFO FETCH
     let registration = await prisma.registration.findUnique({
       where: { id: order_id },
     });
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     console.log("📋 REGISTRATION DATA:", registration);
 
-    // ✅ verify payment from shurjopay
+    // ✅ VERIFY PAYMENT FROM SHURJOPAY
     const response = (await shurjopay.verifyPayment(
       order_id
     )) as unknown as ShurjoPayVerifyResponse;
@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
 
           await sendSMS(registration.mobileNumber, smsMessage);
           console.log("✅ SMS SENT TO:", registration.mobileNumber);
+          
           // 1️⃣ ADMIN EMAIL
           if (process.env.ADMIN_EMAIL) {
             await resend.emails.send({
