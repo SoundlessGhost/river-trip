@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       customer_phone: mobileNumber,
       order_id: registration.id,
       amount: parseFloat(body.amount),
-      customer_email: "",
+      customer_email: email,
       customer_state: "",
       customer_postcode: "",
     };
