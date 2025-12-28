@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         notificationPromises.push(
           resend.emails
             .send({
-              from: "Nadi Yatra <noreply@send.dekhai.org>",
+              from: "Nadi Yatra <noreply@send.rangpurzillasamity.org>",
               to: process.env.ADMIN_EMAIL,
               subject: `✅ NEW REGISTRATION - ${registration.fullName}`,
               html: generateAdminEmail(response, registration),
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
         notificationPromises.push(
           resend.emails
             .send({
-              from: "Nadi Yatra <noreply@send.dekhai.org>",
+              from: "Nadi Yatra <noreply@send.rangpurzillasamity.org>",
               to: registration.email,
               subject: `✅ নদী যাত্রা ২০২৬ - আপনার রেজিস্ট্রেশন সফল হয়েছে`,
               html: generateUserEmail(response, registration),
