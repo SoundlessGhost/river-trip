@@ -1,36 +1,60 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/payment/ipn/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
-import { PaymentStatus, PrismaClient } from "@prisma/client";
-
-interface ShurjopayIPNPayload {
-  order_id?: string;
-  transaction_id?: string;
-  txn_id?: string;
-  amount?: string | number;
-  status?: string;
-  payment_status?: string;
-  bank_status?: string;
-  // Shurjopay থেকে আরো fields আসতে পারে
-}
+import { PrismaClient, PaymentStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+interface ShurjopayIPNPayload {
+  order_id: string;
+  sp_order_id: string;
+  bank_status: string;
+  sp_code: string;
+  sp_message: string;
+  amount: string;
+  currency: string;
+  bank_trx_id?: string;
+  customer_order_id?: string;
+  customer_phone?: string;
+  customer_name?: string;
+  payment_method?: string;
+  date_time?: string;
+}
+
+// Helper function to extract data from both POST body and GET params
+async function extractIPNData(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+
+  // Try POST body first
+  let data: Partial<ShurjopayIPNPayload> = {};
+  try {
+    const body = await request.json();
+    data = { ...body };
+  } catch {
+    // If no body, use query params
+  }
+
+  // Merge with query params (query params take precedence if both exist)
+  searchParams.forEach((value, key) => {
+    data[key as keyof ShurjopayIPNPayload] = value;
+  });
+
+  return data;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body: ShurjopayIPNPayload = await request.json();
+    const body = await extractIPNData(request);
 
-    console.log("🔔 IPN Received (POST):", JSON.stringify(body, null, 2));
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔔 SHURJOPAY IPN RECEIVED (POST)");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log(JSON.stringify(body, null, 2));
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    // Extract data (Shurjopay different field names use করতে পারে)
-    const orderId = body.order_id;
-    const transactionId = body.transaction_id || body.txn_id;
-    const amount = body.amount;
-    const status = body.status || body.payment_status || body.bank_status;
+    const { order_id, sp_order_id, bank_status, sp_code } = body;
 
     // Validation
-    if (!orderId) {
+    if (!order_id) {
       console.error("❌ Missing order_id");
       return NextResponse.json(
         { success: false, error: "Missing order_id" },
@@ -38,21 +62,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!transactionId) {
-      console.error("❌ Missing transaction_id");
-      return NextResponse.json(
-        { success: false, error: "Missing transaction_id" },
-        { status: 400 }
-      );
-    }
+    // For testing, if sp_order_id is missing, use a dummy one
+    const transactionId = sp_order_id || `TEST_${Date.now()}`;
 
     // Check if registration exists
     const registration = await prisma.registration.findUnique({
-      where: { id: orderId },
+      where: { id: order_id },
     });
 
     if (!registration) {
-      console.error("❌ Registration not found:", orderId);
+      console.error("❌ Registration not found:", order_id);
       return NextResponse.json(
         { success: false, error: "Registration not found" },
         { status: 404 }
@@ -62,24 +81,23 @@ export async function POST(request: NextRequest) {
     // Determine payment status
     let paymentStatus: PaymentStatus;
 
-    // Shurjopay যদি "success", "completed", "paid" এরকম কিছু পাঠায়
-    if (
-      status?.toLowerCase() === "success" ||
-      status?.toLowerCase() === "completed" ||
-      status?.toLowerCase() === "paid"
-    ) {
+    if (bank_status?.toLowerCase() === "success" && sp_code === "1000") {
       paymentStatus = PaymentStatus.SUCCESS;
-    } else if (status?.toLowerCase() === "failed") {
+      console.log("✅ Payment SUCCESS");
+    } else if (
+      bank_status?.toLowerCase() === "failed" ||
+      bank_status?.toLowerCase() === "cancelled"
+    ) {
       paymentStatus = PaymentStatus.FAILED;
-    } else if (status?.toLowerCase() === "cancelled") {
-      paymentStatus = PaymentStatus.CANCELLED;
+      console.log("❌ Payment FAILED/CANCELLED");
     } else {
       paymentStatus = PaymentStatus.PENDING;
+      console.log("⏳ Payment PENDING");
     }
 
     // Update database
     const updated = await prisma.registration.update({
-      where: { id: orderId },
+      where: { id: order_id },
       data: {
         paymentStatus,
         transactionId,
@@ -87,13 +105,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("✅ Payment updated successfully:", {
+    console.log("✅ Database Updated:", {
       id: updated.id,
-      status: updated.paymentStatus,
-      txnId: updated.transactionId,
+      paymentStatus: updated.paymentStatus,
+      transactionId: updated.transactionId,
     });
 
-    // Success response
     return NextResponse.json(
       {
         success: true,
@@ -106,57 +123,56 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error("❌ IPN Error:", error);
+  } catch (error: unknown) {
+    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.error("❌ IPN PROCESSING ERROR");
+    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.error(error);
+    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    // Prisma unique constraint error
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Transaction ID already exists",
-        },
-        { status: 409 }
-      );
-    }
-
+    const errorMessage =
+      error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "Internal server error",
+        error: errorMessage,
       },
       { status: 500 }
     );
   }
 }
 
-// GET method support
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const orderId = searchParams.get("order_id");
-    const transactionId =
-      searchParams.get("transaction_id") || searchParams.get("txn_id");
-    const status =
-      searchParams.get("status") || searchParams.get("payment_status");
 
-    console.log("🔔 IPN Received (GET):", {
-      orderId,
-      transactionId,
-      status,
-      allParams: Object.fromEntries(searchParams),
+    const params: Record<string, string> = {};
+    searchParams.forEach((value, key) => {
+      params[key] = value;
     });
 
-    if (!orderId || !transactionId) {
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔔 SHURJOPAY IPN (GET) RECEIVED");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log(JSON.stringify(params, null, 2));
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    const order_id = searchParams.get("order_id");
+    const sp_order_id = searchParams.get("sp_order_id");
+    const bank_status = searchParams.get("bank_status");
+    const sp_code = searchParams.get("sp_code");
+
+    if (!order_id) {
       return NextResponse.json(
-        { success: false, error: "Missing required parameters" },
+        { success: false, error: "Missing order_id" },
         { status: 400 }
       );
     }
 
-    // Check registration
+    const transactionId = sp_order_id || `TEST_GET_${Date.now()}`;
+
     const registration = await prisma.registration.findUnique({
-      where: { id: orderId },
+      where: { id: order_id },
     });
 
     if (!registration) {
@@ -166,23 +182,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Determine payment status
-    let paymentStatus: PaymentStatus = PaymentStatus.PENDING;
+    let paymentStatus: PaymentStatus;
 
-    if (
-      status?.toLowerCase() === "success" ||
-      status?.toLowerCase() === "completed"
-    ) {
+    if (bank_status?.toLowerCase() === "success" && sp_code === "1000") {
       paymentStatus = PaymentStatus.SUCCESS;
-    } else if (status?.toLowerCase() === "failed") {
+    } else if (
+      bank_status?.toLowerCase() === "failed" ||
+      bank_status?.toLowerCase() === "cancelled"
+    ) {
       paymentStatus = PaymentStatus.FAILED;
-    } else if (status?.toLowerCase() === "cancelled") {
-      paymentStatus = PaymentStatus.CANCELLED;
+    } else {
+      paymentStatus = PaymentStatus.PENDING;
     }
 
-    // Update
     const updated = await prisma.registration.update({
-      where: { id: orderId },
+      where: { id: order_id },
       data: {
         paymentStatus,
         transactionId,
@@ -190,7 +204,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log("✅ Payment updated (GET):", updated.id);
+    console.log("✅ Database Updated (GET):", updated.id);
 
     return NextResponse.json({
       success: true,
@@ -200,15 +214,18 @@ export async function GET(request: NextRequest) {
         payment_status: updated.paymentStatus,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ IPN GET Error:", error);
-
+    const errorMessage =
+      error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "Internal server error",
+        error: errorMessage,
       },
       { status: 500 }
     );
   }
 }
+
+// RZS694fe4510f95b
