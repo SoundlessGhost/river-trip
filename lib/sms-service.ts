@@ -51,6 +51,8 @@ export async function sendSMS(
       throw new Error("SMS credentials not configured");
     }
 
+    // https://smpp.revesms.com:7790/sendtext?apikey=API_KEY&secretkey=SECRET_KEY&callerID=SENDER_ID&toUser=MOBILE_NUMBER&messageContent=MESSAGE
+
     const formattedPhone = formatBDPhoneNumber(phoneNumber);
     const baseUrl = "https://smpp.revesms.com:7790/sendtext";
 
