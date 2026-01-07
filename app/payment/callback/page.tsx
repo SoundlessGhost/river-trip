@@ -2,7 +2,6 @@
 
 import { Suspense } from "react";
 import PaymentCallbackContent from "../PaymentCallbackContent";
-// import PaymentCallbackContent from "./PaymentCallbackContent";
 
 export const dynamic = "force-dynamic";
 
